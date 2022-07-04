@@ -24,6 +24,9 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
     sub_optitrack_ = nh_.subscribe<geometry_msgs::PoseStamped>
         (topicname_optitrack_,   10, &StateEstimator::callbackOptitrack, this);
 
+    // Filter generation
+    filter_ = std::make_unique<FilterType>();
+
     // run
     this->run();
 };
@@ -43,6 +46,12 @@ void StateEstimator::run(){
 
 
 void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
+    imu_current_ = *msg;
+    std::cout << imu_current_.header.seq << ", IMU Gets: " << imu_current_.header.stamp.toNSec() << std::endl;
+
+
+    filter_->propagate();
+
     // msg->header.seq << " ";
     // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
     // (double)msg->linear_acceleration.x << " ";
@@ -59,6 +68,9 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
 
 
 void StateEstimator::callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg){
+    mag_current_ = *msg;
+    std::cout << mag_current_.header.seq << ", Mag Gets: " << mag_current_.header.stamp.toNSec() << std::endl;
+    
     // msg->header.seq << " ";
     // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
     // (double)msg->magnetic_field.x << " ";
@@ -67,6 +79,11 @@ void StateEstimator::callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg){
 };
 
 void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr& msg){
+    optitrack_current_ = *msg;
+    std::cout << optitrack_current_.header.seq << ", Optitrack Gets: " << optitrack_current_.header.stamp.toNSec() << std::endl;
+
+    filter_->update();
+    
     // msg->header.seq << " ";
     // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
     // (double)msg->pose.position.x << " ";

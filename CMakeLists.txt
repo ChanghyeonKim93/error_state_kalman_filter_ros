@@ -24,6 +24,8 @@ set(SRC ${SRC}
 
     src/signal_handler_linux.cpp
     src/timer.cpp
+
+    src/error_state_kalman_filter.cpp
 )
 
 set(includeDirs ${includeDirs} ${CMAKE_CURRENT_BINARY_DIR})
