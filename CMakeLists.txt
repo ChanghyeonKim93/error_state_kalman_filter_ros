@@ -21,6 +21,9 @@ catkin_package(
 
 set(SRC ${SRC} 
     src/state_estimator.cpp
+
+    src/signal_handler_linux.cpp
+    src/timer.cpp
 )
 
 set(includeDirs ${includeDirs} ${CMAKE_CURRENT_BINARY_DIR})
@@ -31,5 +34,5 @@ include_directories( ${catkin_INCLUDE_DIRS} )
 include_directories( ${Eigen_INCLUDE_DIRS} )
 
 # executables
-add_executable(eskf_based_approach src/main_eskf.cpp ${SRC})
-target_link_libraries (eskf_based_approach ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+add_executable(state_estimator_node src/main.cpp ${SRC})
+target_link_libraries (state_estimator_node ${catkin_LIBRARIES} ${Eigen_LIBRARIES})

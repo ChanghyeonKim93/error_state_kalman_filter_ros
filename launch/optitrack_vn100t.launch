@@ -1,0 +1,13 @@
+<launch>
+    <!-- topic names -->
+    <arg name="topic_imu"         default="/vn100t/imu"/>
+    <arg name="topic_mag"         default="/vn100t/magnetic_field"/>
+
+    <arg name="topic_optitrack" default="/optitrack/VN100T_CHK/poseStamped"/>
+
+    <node pkg="state_estimator" name="state_estimator_node" type="state_estimator_node" output="screen">
+        <param name="topic_imu"         type="string" value="$(arg topic_imu)"/>
+        <param name="topic_mag"         type="string" value="$(arg topic_mag)"/>
+        <param name="topic_optitrack"   type="string" value="$(arg topic_optitrack)"/>
+    </node>
+</launch>
