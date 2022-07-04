@@ -13,6 +13,8 @@ typedef Matrix<double,4,4> Mat44;
 typedef Matrix<double,3,4> Mat34;
 typedef Matrix<double,4,3> Mat43;
 
+typedef Matrix<double,15,15> CovarianceMat;
+
 #define POW2(x) ((x)*(x))
 
 class ESKF{
@@ -23,7 +25,8 @@ public:
     ESKF();
     ~ESKF();
 
-    void propagate(); // by imu 
+    void predict(double ax, double ay, double az, 
+                   double wx, double wy, double wz, double t_now); // by imu 
     void update(); // by optitrack
 
 private:
@@ -47,6 +50,13 @@ private:
             ba = Vec3::Zero();
             bg = Vec3::Zero();
         };
+        NominalState(const NominalState& nom){
+            p  = nom.p;
+            v  = nom.v;
+            q  = nom.q;
+            ba = nom.ba;
+            bg = nom.bg;
+        };
 
         void initialize(const Vec3& pi, const Vec3& vi, const Vec4& qi, const Vec3& bai, const Vec3& bgi){
             p  = pi;
@@ -69,6 +79,13 @@ private:
             dth = Vec3::Zero();
             dba = Vec3::Zero();
             dbg = Vec3::Zero();
+        };
+        ErrorState(const ErrorState& dX){
+            dp  = dX.dp;
+            dv  = dX.dv;
+            dth = dX.dth;
+            dba = dX.dba;
+            dbg = dX.dbg;
         };
     };
 
@@ -135,9 +152,12 @@ private:
 
     NominalState X_nom_;
     ErrorState   dX_;
+    CovarianceMat P_;
 
     ProcessNoise process_noise_;
     MeasurementNoise measurement_noise_;
+
+    double t_prev_;
 
 public:
 

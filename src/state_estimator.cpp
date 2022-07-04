@@ -48,9 +48,19 @@ void StateEstimator::run(){
 void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     imu_current_ = *msg;
     std::cout << imu_current_.header.seq << ", IMU Gets: " << imu_current_.header.stamp.toNSec() << std::endl;
+    
+    double t_now = imu_current_.header.stamp.toSec();
 
+    double am[3];
+    double wm[3];
+    am[0] = imu_current_.linear_acceleration.x;
+    am[1] = imu_current_.linear_acceleration.y;
+    am[2] = imu_current_.linear_acceleration.z;
+    wm[0] = imu_current_.angular_velocity.x;
+    wm[1] = imu_current_.angular_velocity.y;
+    wm[2] = imu_current_.angular_velocity.z;
 
-    filter_->propagate();
+    filter_->predict(am[0],am[1],am[2],wm[0],wm[1],wm[2],t_now);
 
     // msg->header.seq << " ";
     // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
