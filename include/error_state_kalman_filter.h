@@ -5,7 +5,6 @@
 #include <Eigen/Dense>
 
 using namespace Eigen;
-
 typedef Matrix<double,3,1> Vec3;
 typedef Matrix<double,4,1> Vec4;
 typedef Matrix<double,3,3> Mat33;
@@ -14,6 +13,8 @@ typedef Matrix<double,3,4> Mat34;
 typedef Matrix<double,4,3> Mat43;
 
 typedef Matrix<double,15,15> CovarianceMat;
+
+#define GRAVITY_MAGNITUDE 9.81
 
 #define POW2(x) ((x)*(x))
 
@@ -26,8 +27,10 @@ public:
     ~ESKF();
 
     void predict(double ax, double ay, double az, 
-                   double wx, double wy, double wz, double t_now); // by imu 
+                 double wx, double wy, double wz, double t_now); // by imu 
     void update(); // by optitrack
+    
+    void resetFilter();
 
 private:
     static Mat33 I33;
@@ -36,6 +39,55 @@ private:
     static Mat44 O44;
     static Mat34 O34;
     static Mat43 O43;
+
+    struct FixedParameters{
+        Mat33 R_BI; // SO(3), rotation only. drone body frame (== optitrack coordinate frame) 
+        // to the IMU frame
+        Mat33 R_IB; // R_BI.transpose();
+        Vec4  q_BI; // quaternion, rotation only. drone body frame to IMU frame
+        Vec4  q_IB; // q_BI.conjugate();
+        
+        Vec3 grav; // gravity w.r.t. the global frame
+
+        FixedParameters(){
+            R_BI << 1,0,0, 0,-1,0, 0,0,-1;
+            R_IB = R_BI.transpose();
+            q_BI << 0,-1,0,0;
+            q_IB << 0, 1,0,0;
+
+            grav << 0.0, 0.0, -GRAVITY_MAGNITUDE;
+        };
+    };
+
+    struct NominalStateIndex{
+        uint32_t p[2];
+        uint32_t v[2];
+        uint32_t q[2];
+        uint32_t ba[2];
+        uint32_t bg[2];
+        NominalStateIndex(){
+            p[0]=0; p[1]=2;
+            v[0]=3; v[1]=5;
+            q[0]=6; q[1]=9;
+            ba[0]=10; ba[1]=12;
+            bg[0]=13; bg[1]=15;
+        };
+    };
+
+    struct ErrorStateIndex{
+        uint32_t dp[2];
+        uint32_t dv[2];
+        uint32_t dth[2];
+        uint32_t dba[2];
+        uint32_t dbg[2];
+        ErrorStateIndex(){
+            dp[0]=0; dp[1]=2;
+            dv[0]=3; dv[1]=5;
+            dth[0]=6; dth[1]=8;
+            dba[0]=9; dba[1]=11;
+            dbg[0]=12; dbg[1]=14;
+        };
+    };
 
     struct NominalState{
         Vec3 p;
@@ -58,7 +110,7 @@ private:
             bg = nom.bg;
         };
 
-        void initialize(const Vec3& pi, const Vec3& vi, const Vec4& qi, const Vec3& bai, const Vec3& bgi){
+        void setValues(const Vec3& pi, const Vec3& vi, const Vec4& qi, const Vec3& bai, const Vec3& bgi){
             p  = pi;
             v  = vi;
             q  = qi; 
@@ -109,6 +161,7 @@ private:
             acc  = Vec3::Zero();
             gyro = Vec3::Zero();
         };
+        // When using measurement, 
     };
 
     struct Observation{
@@ -131,11 +184,11 @@ private:
             Q = Matrix<double, 12,12>::Identity();
             for(int i = 0; i < 3; ++i){
                 Q(i,i) = POW2(sig_na);
-                Q(3+i,3+i) = POW2(sig_na);
-                Q(6+i,6+i) = POW2(sig_na);
-                Q(9+i,9+i) = POW2(sig_na);
+                Q(3+i,3+i) = POW2(sig_ng);
+                Q(6+i,6+i) = POW2(sig_nba);
+                Q(9+i,9+i) = POW2(sig_nbg);
             }
-         };
+        };
     };
 
     struct MeasurementNoise{

@@ -11,7 +11,16 @@ Mat43 ESKF::O43 = Mat43::Zero();
 ESKF::ESKF()
 : measurement_noise_(), process_noise_(), X_nom_(), dX_()
 {
-    P_ = CovarianceMat::Identity()*100.0;
+    P_ = CovarianceMat::Identity()*0.005;
+
+    std::cout << "P_:\n";
+    std::cout << P_ << std::endl;
+
+    std::cout << "Q_:\n";
+    std::cout << process_noise_.Q << std::endl;
+
+    std::cout << "R_:\n";
+    std::cout << measurement_noise_.R << std::endl;
 
     std::cout << "Error State Kalman Filter - constructed\n";
 };
