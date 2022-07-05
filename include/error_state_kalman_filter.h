@@ -4,6 +4,8 @@
 #include <iostream>
 #include <Eigen/Dense>
 
+#include "geometry_library.h"
+
 using namespace Eigen;
 typedef Matrix<double,3,1> Vec3;
 typedef Matrix<double,4,1> Vec4;
@@ -180,7 +182,8 @@ private:
         double sig_nbg; // gyro bias noise (1e-15)
         int dim;
         Matrix<double, 12,12> Q;
-        ProcessNoise() : sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
+        ProcessNoise() : 
+        sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
             Q = Matrix<double, 12,12>::Identity();
             for(int i = 0; i < 3; ++i){
                 Q(i,i) = POW2(sig_na);
@@ -209,6 +212,8 @@ private:
 
     ProcessNoise process_noise_;
     MeasurementNoise measurement_noise_;
+
+    Matrix<double,15,12> Fi_;
 
     double t_prev_;
 

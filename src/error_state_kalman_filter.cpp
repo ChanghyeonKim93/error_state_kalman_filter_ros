@@ -11,16 +11,18 @@ Mat43 ESKF::O43 = Mat43::Zero();
 ESKF::ESKF()
 : measurement_noise_(), process_noise_(), X_nom_(), dX_()
 {
+    // initialize error covariance matrix
     P_ = CovarianceMat::Identity()*0.005;
 
-    std::cout << "P_:\n";
-    std::cout << P_ << std::endl;
-
-    std::cout << "Q_:\n";
-    std::cout << process_noise_.Q << std::endl;
-
-    std::cout << "R_:\n";
-    std::cout << measurement_noise_.R << std::endl;
+    // initialize Fi matrix
+    Fi_ << O33, O33, O33, O33, 
+           I33, O33, O33, O33,
+           O33, I33, O33, O33,
+           O33, O33, I33, O33,
+           O33, O33, O33, I33;
+           
+    Vec3 ba_init(0.011, 0.007, 0.201);
+    Vec3 bg_init(0.0043586,-0.0011758,-0.011671);
 
     std::cout << "Error State Kalman Filter - constructed\n";
 };
@@ -42,7 +44,7 @@ void ESKF::predict(double ax, double ay, double az, double wx, double wy, double
 
     // 1. nominal state propagation
     NominalState X_nom_prev = X_nom_;
-    ErrorState dX_prev = dX_;
+    ErrorState   dX_prev = dX_;
     // X_nom_ = predict_nominal(X_nom_prev, am, wm, dt);
 
     // 2. error-state propagation
