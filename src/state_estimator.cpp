@@ -51,29 +51,10 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     
     double t_now = imu_current_.header.stamp.toSec();
 
-    double am[3];
-    double wm[3];
-    am[0] = imu_current_.linear_acceleration.x;
-    am[1] = imu_current_.linear_acceleration.y;
-    am[2] = imu_current_.linear_acceleration.z;
-    wm[0] = imu_current_.angular_velocity.x;
-    wm[1] = imu_current_.angular_velocity.y;
-    wm[2] = imu_current_.angular_velocity.z;
+    Vec3 am(imu_current_.linear_acceleration.x, imu_current_.linear_acceleration.y, imu_current_.linear_acceleration.z);
+    Vec3 wm(imu_current_.angular_velocity.x, imu_current_.angular_velocity.y, imu_current_.angular_velocity.z);
 
-    filter_->predict(am[0],am[1],am[2],wm[0],wm[1],wm[2],t_now);
-
-    // msg->header.seq << " ";
-    // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
-    // (double)msg->linear_acceleration.x << " ";
-    // (double)msg->linear_acceleration.y << " ";
-    // (double)msg->linear_acceleration.z << " ";
-    // (double)msg->angular_velocity.x << " ";
-    // (double)msg->angular_velocity.y << " ";
-    // (double)msg->angular_velocity.z << " ";
-    // (double)msg->orientation.w << " ";
-    // (double)msg->orientation.x << " ";
-    // (double)msg->orientation.y << " ";
-    // (double)msg->orientation.z << "\n";
+    filter_->predict(am, wm, t_now);
 };
 
 
@@ -81,26 +62,15 @@ void StateEstimator::callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg){
     mag_current_ = *msg;
     std::cout << mag_current_.header.seq << ", Mag Gets: " << mag_current_.header.stamp.toNSec() << std::endl;
     
-    // msg->header.seq << " ";
-    // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
-    // (double)msg->magnetic_field.x << " ";
-    // (double)msg->magnetic_field.y << " ";
-    // (double)msg->magnetic_field.z << "\n";
+    // filter_->updateMagnetometer();
 };
 
 void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr& msg){
     optitrack_current_ = *msg;
     std::cout << optitrack_current_.header.seq << ", Optitrack Gets: " << optitrack_current_.header.stamp.toNSec() << std::endl;
 
-    filter_->update();
-    
-    // msg->header.seq << " ";
-    // (double)msg->header.stamp.toNSec()*0.000000001 << " ";
-    // (double)msg->pose.position.x << " ";
-    // (double)msg->pose.position.y << " ";
-    // (double)msg->pose.position.z << " ";
-    // (double)msg->pose.orientation.w << " ";
-    // (double)msg->pose.orientation.x << " ";
-    // (double)msg->pose.orientation.y << " ";
-    // (double)msg->pose.orientation.z << "\n";
+    Vec3 p_observe(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+    Vec4 q_observe(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z);
+
+    filter_->updateOptitrack(p_observe, q_observe);
 };

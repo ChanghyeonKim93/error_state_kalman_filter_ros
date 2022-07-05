@@ -47,11 +47,11 @@ public:
     ESKF();
     ~ESKF();
 
-    void predict(double ax, double ay, double az, 
-                 double wx, double wy, double wz, double t_now); // by imu 
-    void update(); // by optitrack
+    void predict(const Vec3& am, const Vec3& wm, double t_now); // by imu 
+    // void updateMagnetometer(const Vec3& p_observe, const Vec4& q_observe); // by magnetometer
+    void updateOptitrack(const Vec3& p_observe, const Vec4& q_observe); // by optitrack
     
-    void resetFilter();
+    void resetFilter(const Vec3& p_init, const Vec4& q_init); // other states go to zeros.
 
 private:
     static Mat33 I33;

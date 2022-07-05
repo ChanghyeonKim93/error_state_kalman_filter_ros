@@ -31,17 +31,13 @@ ESKF::~ESKF(){
     std::cout << "Error State Kalman Filter - destructed\n";
 };
 
-void ESKF::predict(double ax, double ay, double az, double wx, double wy, double wz, double t_now){
+void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
     // Do implementation
     std::cout << "Predict...\n";
     double dt = t_now - t_prev_;
     t_prev_ = t_now;
 
     // Do prediction    
-    // 0. measurement
-    Vec3 am(ax,ay,az);
-    Vec3 wm(wx,wy,wz);
-
     // 1. nominal state propagation
     NominalState X_nom_prev = X_nom_;
     ErrorState   dX_prev = dX_;
@@ -57,22 +53,21 @@ void ESKF::predict(double ax, double ay, double az, double wx, double wy, double
 
     // X_nom_.replace(X_nom_update);
     // dX_.replace(dX_update);
-    
+
 };
 
-void ESKF::update(){
+void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe){
     // Do implementation
     std::cout << "Update...\n";
+
+
 };
-
-
 
 void ESKF::updateNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt, 
     NominalState& X_nom_update){
     Matrix3d R_B0Ik = geometry::q2r(X_nom.q);
 
     // Update nominal state
-    NominalState X_nom_update;
     Vec3 Adt = (R_B0Ik*(am-X_nom.ba)-fixed_param_.grav)*dt;
     X_nom_update.p = X_nom.p + (X_nom.v + 0.5*Adt)*dt;
     X_nom_update.v = X_nom.v + Adt;

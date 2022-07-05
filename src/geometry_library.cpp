@@ -102,12 +102,12 @@ namespace geometry {
         // expmF = I + F0*dt + 0.5*F0F0*dtdt  + 1/6*F0F0F0*dtdtdt
         //           + 1/24*F0F0F0F0*dtdtdtdt + 1/120*F0F0F0F0F0*dtdtdtdtdt;
 
-        Matrix3d skW     =  F.block<6,6>(3,3);
+        Matrix3d skW     =  F.block<3,3>(6,6);
         Matrix3d skW2    =  skW *skW;
         Matrix3d skW3    =  skW2*skW;
         Matrix3d skW4    =  skW3*skW;
 
-        Matrix3d RBI_skA       = -F.block<3,6>(3,3);
+        Matrix3d RBI_skA       = -F.block<3,3>(3,6);
         Matrix3d RBI_skA_skW   = RBI_skA*skW;
         Matrix3d RBI_skA_skW2  = RBI_skA_skW*skW;
         Matrix3d RBI_skA_skW3  = RBI_skA_skW2*skW;
@@ -119,7 +119,7 @@ namespace geometry {
         double mul4 = 1.0/120.0;
         double mul5 = 1.0/720.0;
 
-        Matrix3d RBI       = -F.block<3,9>(3,3);
+        Matrix3d RBI       = -F.block<3,3>(3,9);
 
         // R_BIskewA = R_BI*skewA;
         // skewW2 = skewW*skewW;
