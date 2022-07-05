@@ -26,6 +26,7 @@ set(SRC ${SRC}
     src/timer.cpp
 
     src/error_state_kalman_filter.cpp
+    src/geometry_library.cpp
 )
 
 set(includeDirs ${includeDirs} ${CMAKE_CURRENT_BINARY_DIR})

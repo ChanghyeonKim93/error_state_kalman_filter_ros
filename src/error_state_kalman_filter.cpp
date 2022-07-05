@@ -54,11 +54,50 @@ void ESKF::predict(double ax, double ay, double az, double wx, double wy, double
     // F0 = errorStateF(X_nom_prev, dX_prev,am,wm);
     // eF0dt = expm(F0 * dt);
     // P_ = eF0dt * P_ * eF0dt.transpose() + Fi * Q_*Fi.transpose();
+
+    // X_nom_.replace(X_nom_update);
+    // dX_.replace(dX_update);
+    
 };
 
 void ESKF::update(){
     // Do implementation
     std::cout << "Update...\n";
+};
 
 
+
+void ESKF::updateNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt, 
+    NominalState& X_nom_update){
+    Matrix3d R_B0Ik = geometry::q2r(X_nom.q);
+
+    // Update nominal state
+    NominalState X_nom_update;
+    Vec3 Adt = (R_B0Ik*(am-X_nom.ba)-fixed_param_.grav)*dt;
+    X_nom_update.p = X_nom.p + (X_nom.v + 0.5*Adt)*dt;
+    X_nom_update.v = X_nom.v + Adt;
+    X_nom_update.q = geometry::q_right_mult(geometry::rotvec2q((wm-X_nom.bg)*dt))*X_nom.q;
+    X_nom_update.ba = X_nom.ba;
+    X_nom_update.bg = X_nom.bg;
+};
+
+void ESKF::updateError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
+    ErrorState& dX_update)
+{
+    FMat eF0dt;
+
+    // Update nominal state
+    // dX_update = eF0dt*dX;
+};
+
+void ESKF::errorStateF(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm,
+    FMat& res)
+{
+    Matrix3d R_B0Ik = geometry::q2r(X_nom.q);
+
+    res << O33, I33, O33, O33, O33,
+           O33, O33, -R_B0Ik*geometry::skewMat(am-X_nom.ba),-R_B0Ik, O33,
+           O33, O33, -geometry::skewMat(wm-X_nom.bg), O33, -I33,
+           O33, O33, O33, O33, O33, 
+           O33, O33, O33, O33, O33;
 };

@@ -15,14 +15,33 @@ typedef Matrix<double,3,4> Mat34;
 typedef Matrix<double,4,3> Mat43;
 
 typedef Matrix<double,15,15> CovarianceMat;
+typedef Matrix<double,15,15> FMat;
 
 #define GRAVITY_MAGNITUDE 9.81
 
 #define POW2(x) ((x)*(x))
 
 class ESKF{
+    struct FixedParameters;
+    struct NominalStateIndex;
+    struct ErrorStateIndex;
+    struct NominalState;
+    struct ErrorState;
+    struct EstmiatedState;
+    struct Measurement;
+    struct Observation;
+    struct ProcessNoise;
+    struct MeasurementNoise;
+
 private:
     // Related to Kalman filter implementation .
+    void updateNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt,
+                       NominalState& X_nom_update);
+    void updateError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
+                       ErrorState& dX_update);
+
+    void errorStateF(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm,
+                       FMat& res);
 
 public:
     ESKF();
@@ -119,6 +138,13 @@ private:
             ba = bai;
             bg = bgi;
         };
+        void replace(const NominalState& nom){
+            p  = nom.p;
+            v  = nom.v;
+            q  = nom.q;
+            ba = nom.ba;
+            bg = nom.bg;
+        };
     };
 
     struct ErrorState{
@@ -135,6 +161,13 @@ private:
             dbg = Vec3::Zero();
         };
         ErrorState(const ErrorState& dX){
+            dp  = dX.dp;
+            dv  = dX.dv;
+            dth = dX.dth;
+            dba = dX.dba;
+            dbg = dX.dbg;
+        };
+        void replace(const ErrorState& dX){
             dp  = dX.dp;
             dv  = dX.dv;
             dth = dX.dth;
@@ -206,12 +239,15 @@ private:
         };
     };
 
+    FixedParameters fixed_param_;
+
     NominalState X_nom_;
     ErrorState   dX_;
     CovarianceMat P_;
 
     ProcessNoise process_noise_;
     MeasurementNoise measurement_noise_;
+    
 
     Matrix<double,15,12> Fi_;
 
