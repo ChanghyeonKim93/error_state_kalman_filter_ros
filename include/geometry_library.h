@@ -5,8 +5,6 @@
 #include <Eigen/Dense>
 
 using namespace Eigen;
-typedef Matrix<double,15,15> FMat;
-
 namespace geometry {
     Matrix3d skewMat(const Vector3d& v);
     Matrix4d q_right_mult(const Vector4d& q);
@@ -16,7 +14,6 @@ namespace geometry {
     Matrix3d q2r(const Vector4d& q);
     Vector4d rotvec2q(const Vector3d& w);
     Matrix3d a2r(double r, double p, double y);
-    Matrix4d expm_FMat(const FMat& F);
 };
 
 

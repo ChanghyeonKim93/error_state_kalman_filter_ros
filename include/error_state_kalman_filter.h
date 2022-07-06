@@ -9,19 +9,34 @@
 using namespace Eigen;
 typedef Matrix<double,3,1> Vec3;
 typedef Matrix<double,4,1> Vec4;
+typedef Matrix<double,7,1> Vec7;
+typedef Matrix<double,15,1> ErrorStateVec;
+typedef Matrix<double,16,1> NominalStateVec;
+
 typedef Matrix<double,3,3> Mat33;
 typedef Matrix<double,4,4> Mat44;
 typedef Matrix<double,3,4> Mat34;
 typedef Matrix<double,4,3> Mat43;
+typedef Matrix<double,15,15> Mat1515;
 
 typedef Matrix<double,15,15> CovarianceMat;
 typedef Matrix<double,15,15> FMat;
+typedef Matrix<double,15,15> expmFMat;
+typedef Matrix<double,7,15>  HMat;
+typedef Matrix<double,15,7>  KMat;
+typedef Matrix<double,7,7>   RMat;
+typedef Matrix<double,12,12> QMat;
+
+
+typedef Matrix<double,15,15> Mat1515;
 
 #define GRAVITY_MAGNITUDE 9.81
 
 #define POW2(x) ((x)*(x))
+#define BLOCK33(A,i,j) ((A).block<3,3>(3*i,3*j))
 
 class ESKF{
+public:
     struct FixedParameters;
     struct NominalStateIndex;
     struct ErrorStateIndex;
@@ -35,13 +50,16 @@ class ESKF{
 
 private:
     // Related to Kalman filter implementation .
-    void updateNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt,
+    void predictNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt,
                        NominalState& X_nom_update);
-    void updateError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
+    void predictError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
                        ErrorState& dX_update);
 
-    void errorStateF(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm,
+    void errorStateF(const NominalState& X_nom, const Vec3& am, const Vec3& wm,
                        FMat& res);
+    void expm_FMat(const FMat& F, const double& dt, int max_approx_order,
+                       expmFMat& expmF);
+    void calcH(const NominalState& X_nom, HMat& H);
 
 public:
     ESKF();
@@ -49,17 +67,26 @@ public:
 
     void predict(const Vec3& am, const Vec3& wm, double t_now); // by imu 
     // void updateMagnetometer(const Vec3& p_observe, const Vec4& q_observe); // by magnetometer
-    void updateOptitrack(const Vec3& p_observe, const Vec4& q_observe); // by optitrack
+    void updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double t_now); // by optitrack
     
     void resetFilter(const Vec3& p_init, const Vec4& q_init); // other states go to zeros.
 
-private:
+// Test functions
+public:
+    void test_FMat(const NominalState& X_nom, const Vec3& am, const Vec3& wm,
+                       FMat& res);
+    void test_expm_FMat(const FMat& F, const double& dt, int max_approx_order,
+                       expmFMat& res);
+
+public:
     static Mat33 I33;
     static Mat44 I44;
     static Mat33 O33;
     static Mat44 O44;
     static Mat34 O34;
     static Mat43 O43;
+    static Mat1515 I1515;
+
 
     struct FixedParameters{
         Mat33 R_BI; // SO(3), rotation only. drone body frame (== optitrack coordinate frame) 
@@ -138,12 +165,43 @@ private:
             ba = bai;
             bg = bgi;
         };
+
+        void setPosition(const Vec3& pi){
+            p = pi;
+        };
+        void setQuaternion(const Vec4& qi){
+            q = qi;
+        };
+
+        void setBiasAcc(const Vec3& bai){
+            ba = bai;
+        };
+        void setBiasGyro(const Vec3& bgi){
+            bg = bgi;
+        };
+
         void replace(const NominalState& nom){
             p  = nom.p;
             v  = nom.v;
             q  = nom.q;
             ba = nom.ba;
             bg = nom.bg;
+        };
+
+        void injectErrorState(const ErrorState& dX){
+            p += dX.dp;
+            v += dX.dv;
+            q = geometry::q_right_mult(geometry::rotvec2q(dX.dth))*q;
+            ba += dX.dba;
+            bg += dX.dbg;
+        };
+
+        void show(){
+            std::cout << "X_nom.p:" << p.transpose() << "\n";
+            std::cout << "X_nom.v:" << v.transpose() << "\n";
+            std::cout << "X_nom.p:" << q.transpose() << "\n";
+            std::cout << "X_nom.ba:" << ba.transpose() << "\n";
+            std::cout << "X_nom.bg:" << bg.transpose() << "\n";
         };
     };
 
@@ -167,12 +225,20 @@ private:
             dba = dX.dba;
             dbg = dX.dbg;
         };
+        
         void replace(const ErrorState& dX){
             dp  = dX.dp;
             dv  = dX.dv;
             dth = dX.dth;
             dba = dX.dba;
             dbg = dX.dbg;
+        };
+        void replace(const ErrorStateVec& dX_vec){
+            dp = dX_vec.block<3,1>(0,0);
+            dv = dX_vec.block<3,1>(3,0);
+            dth = dX_vec.block<3,1>(6,0);
+            dba = dX_vec.block<3,1>(9,0);
+            dbg = dX_vec.block<3,1>(12,0);
         };
     };
 
@@ -214,10 +280,10 @@ private:
         double sig_nba; // acc. bias noise (1e-15)
         double sig_nbg; // gyro bias noise (1e-15)
         int dim;
-        Matrix<double, 12,12> Q;
+        QMat Q;
         ProcessNoise() : 
         sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
-            Q = Matrix<double, 12,12>::Identity();
+            Q = QMat::Identity();
             for(int i = 0; i < 3; ++i){
                 Q(i,i) = POW2(sig_na);
                 Q(3+i,3+i) = POW2(sig_ng);
@@ -231,14 +297,15 @@ private:
         double sig_p; // optitrack position noise // 0.005 (5 mm)
         double sig_q; // quaternion noise // 0.015 ( 0.015 rad)
         int dim;
-        Matrix<double, 7, 7> R; 
+        RMat R; 
         MeasurementNoise() : sig_p(0.005), sig_q(0.015), dim(7) { 
-            R = Matrix<double, 7,7>::Identity();
+            R = RMat::Identity();
             for(int i = 0; i < 3; ++i) R(i,i) = POW2(sig_p);
             for(int i = 0; i < 4; ++i) R(3+i,3+i) = POW2(sig_q);
         };
     };
 
+private:
     FixedParameters fixed_param_;
 
     NominalState X_nom_;
@@ -248,10 +315,12 @@ private:
     ProcessNoise process_noise_;
     MeasurementNoise measurement_noise_;
     
-
     Matrix<double,15,12> Fi_;
 
     double t_prev_;
+    double t_init_;
+    
+    bool isInitialized_;
 
 public:
 

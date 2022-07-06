@@ -47,30 +47,37 @@ void StateEstimator::run(){
 
 void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     imu_current_ = *msg;
-    std::cout << imu_current_.header.seq << ", IMU Gets: " << imu_current_.header.stamp.toNSec() << std::endl;
+    // std::cout << imu_current_.header.seq << ", IMU Gets: " << imu_current_.header.stamp.toNSec() << std::endl;
     
     double t_now = imu_current_.header.stamp.toSec();
 
-    Vec3 am(imu_current_.linear_acceleration.x, imu_current_.linear_acceleration.y, imu_current_.linear_acceleration.z);
-    Vec3 wm(imu_current_.angular_velocity.x, imu_current_.angular_velocity.y, imu_current_.angular_velocity.z);
+    Vec3 am;
+    am << imu_current_.linear_acceleration.x, imu_current_.linear_acceleration.y, imu_current_.linear_acceleration.z;
+    Vec3 wm;
+    wm << imu_current_.angular_velocity.x, imu_current_.angular_velocity.y, imu_current_.angular_velocity.z;
 
+    std::cout << "IMU data: "<< am.transpose() <<", "<< wm.transpose() << std::endl;
     filter_->predict(am, wm, t_now);
 };
 
 
 void StateEstimator::callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg){
     mag_current_ = *msg;
-    std::cout << mag_current_.header.seq << ", Mag Gets: " << mag_current_.header.stamp.toNSec() << std::endl;
+    // std::cout << mag_current_.header.seq << ", Mag Gets: " << mag_current_.header.stamp.toNSec() << std::endl;
     
     // filter_->updateMagnetometer();
 };
 
 void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr& msg){
     optitrack_current_ = *msg;
-    std::cout << optitrack_current_.header.seq << ", Optitrack Gets: " << optitrack_current_.header.stamp.toNSec() << std::endl;
+    // std::cout << optitrack_current_.header.seq << ", Optitrack Gets: " << optitrack_current_.header.stamp.toNSec() << std::endl;
+    double t_now = optitrack_current_.header.stamp.toSec();
+    
+    Vec3 p_observe;
+    p_observe << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
+    Vec4 q_observe;
+    q_observe << msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z;
+    std::cout << "OPTITRACK data: "<< p_observe.transpose() <<", "<< q_observe.transpose() << std::endl;
 
-    Vec3 p_observe(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
-    Vec4 q_observe(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z);
-
-    filter_->updateOptitrack(p_observe, q_observe);
+    filter_->updateOptitrack(p_observe, q_observe, t_now);
 };

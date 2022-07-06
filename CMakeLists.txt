@@ -39,3 +39,9 @@ include_directories( ${Eigen_INCLUDE_DIRS} )
 # executables
 add_executable(state_estimator_node src/main.cpp ${SRC})
 target_link_libraries (state_estimator_node ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+
+add_executable(test_expm src/test_expm.cpp ${SRC})
+target_link_libraries (test_expm ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+
+add_executable(test_quat src/test_quaternion.cpp ${SRC})
+target_link_libraries (test_quat ${catkin_LIBRARIES} ${Eigen_LIBRARIES})

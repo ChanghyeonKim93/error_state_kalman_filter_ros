@@ -1,6 +1,7 @@
 #include "geometry_library.h"
 using namespace Eigen;
 namespace geometry {
+
     Matrix3d skewMat(const Vector3d& v){
         Matrix3d res_mat;
         res_mat << 0,-v(2),v(1),
@@ -92,83 +93,4 @@ namespace geometry {
         return (Rz*Ry*Rx);
     };
 
-    Matrix4d expm_FMat(const FMat& F, const double& dt){
-        Matrix4d expmF;
-        double dt2 = dt*dt;
-        double dt3 = dt2*dt;
-        double dt4 = dt3*dt;
-        double dt5 = dt4*dt;
-        // fourth order approx?
-        // expmF = I + F0*dt + 0.5*F0F0*dtdt  + 1/6*F0F0F0*dtdtdt
-        //           + 1/24*F0F0F0F0*dtdtdtdt + 1/120*F0F0F0F0F0*dtdtdtdtdt;
-
-        Matrix3d skW     =  F.block<3,3>(6,6);
-        Matrix3d skW2    =  skW *skW;
-        Matrix3d skW3    =  skW2*skW;
-        Matrix3d skW4    =  skW3*skW;
-
-        Matrix3d RBI_skA       = -F.block<3,3>(3,6);
-        Matrix3d RBI_skA_skW   = RBI_skA*skW;
-        Matrix3d RBI_skA_skW2  = RBI_skA_skW*skW;
-        Matrix3d RBI_skA_skW3  = RBI_skA_skW2*skW;
-        Matrix3d RBI_skA_skW4  = RBI_skA_skW3*skW;
-
-        double mul1 = 0.5;
-        double mul2 = 1.0/6.0;
-        double mul3 = 1.0/24.0;
-        double mul4 = 1.0/120.0;
-        double mul5 = 1.0/720.0;
-
-        Matrix3d RBI       = -F.block<3,3>(3,9);
-
-        // R_BIskewA = R_BI*skewA;
-        // skewW2 = skewW*skewW;
-        // skewW3 = skewW2*skewW;
-        // skewW4 = skewW3*skewW;
-        // skewW5 = skewW4*skewW;
-
-        // if skewW ~ 10
-        // skewW * dt ~ 10*1e-3 = 1e-2
-        // skewW2 * dt2 ~ 1e-4
-        // skewW3 * dt3 ~ 1e-6
-        // skewW4 * dt4 ~ 1e-8
-        // skewW5 * dt5 ~ 1e-10
-
-        // F0 =...
-        // [0, 1,           0,     0,  0;...
-        //  0, 0, -R_BI*skewA, -R_BI,  0;...
-        //  0, 0,      -skewW,     0, -1;...
-        //  0, 0,           0,     0,  0;...
-        //  0, 0,           0,     0,  0];
-        
-        // F0F0 =...
-        // [0, 0,      -R_BI*skewA, -R_BI,          0;...
-        //  0, 0, R_BI*skewA*skewW,     0, R_BI*skewA;...
-        //  0, 0,          skewW^2,     0,      skewW;...
-        //  0, 0,                0,     0,          0;...
-        //  0, 0,                0,     0,          0];
-
-        // F0F0F0 =...
-        // [0, 0,    R_BI*skewA*skewW, 0,        R_BI*skewA;...
-        //  0, 0, -R_BI*skewA*skewW^2, 0, -R_BI*skewA*skewW;...
-        //  0, 0,            -skewW^3, 0,          -skewW^2;...
-        //  0, 0,                   0, 0,                 0;...
-        //  0, 0,                   0, 0,                 0];
-
-        // F0F0F0F0 =...
-        // [0, 0, -R_BI*skewA*skewW^2, 0,  -R_BI*skewA*skewW;...
-        //  0, 0,  R_BI*skewA*skewW^3, 0, R_BI*skewA*skewW^2;...
-        //  0, 0,             skewW^4, 0,            skewW^3;...
-        //  0, 0,                   0, 0,                  0;...
-        //  0, 0,                   0, 0,                  0];
-
-
-        // F0F0F0F0F0=... 
-        // [0, 0,  R_BI*skewA*skewW^3, 0,  R_BI*skewA*skewW^2;...
-        //  0, 0, -R_BI*skewA*skewW^4, 0, -R_BI*skewA*skewW^3;...
-        //  0, 0,            -skewW^5, 0,            -skewW^4;...
-        //  0, 0,                   0, 0,                   0;...
-        //  0, 0,                   0, 0,                   0];
-        return expmF;
-    };
 };
