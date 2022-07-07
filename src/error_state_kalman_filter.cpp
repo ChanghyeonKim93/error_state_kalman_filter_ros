@@ -10,7 +10,10 @@ Mat43 ESKF::O43 = Mat43::Zero();
 Mat1515 ESKF::I1515 = Mat1515::Identity();
 
 ESKF::ESKF()
-: measurement_noise_(), process_noise_(), X_nom_(), dX_(), isInitialized_(false)
+: measurement_noise_(), process_noise_(), 
+X_nom_(), dX_(),
+emergency_reset_rules_(),  
+isInitialized_(false)
 {
     // initialize error covariance matrix
     P_ = CovarianceMat::Identity()*0.005;
@@ -35,17 +38,24 @@ ESKF::~ESKF(){
     std::cout << "Error State Kalman Filter - destructed\n";
 };
 
+bool ESKF::isInitialized(){
+    return isInitialized_;
+};
+
 void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
-    if(!isInitialized_) {
+    if( !isInitialized_ ) {
         std::cout << "ESKF - predict() : FILTER IS NOT INITIALIZED YET...\n";
         return;
     }
 
     // Do implementation
+#ifdef VERBOSE_STATE
     std::cout << "Predict...\n";
+#endif
+
     double dt = t_now - t_prev_;
     if(dt > 0.02) {
-        std::cout << " MIGHT BE TIME MIGHT BE PASSED TOO LONG!... dt is set to 0.05 s.\n";
+        std::cout << " WARNNING: TIME MIGHT BE PASSED TOO LONG!... 'dt' is set to 0.05 s.\n";
         dt = 0.02;
     }
     t_prev_ = t_now;
@@ -73,20 +83,31 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
 
     P_ = eF0dt * P_ * eF0dt.transpose() + Fi_*process_noise_.Q*Fi_.transpose();
     
+    if(!emergency_reset_rules_.isPositionInRange(X_nom_predict)){
+        std::cout << "WANNING!! - estimated position is out of the position limit range!";
+    }
+
+    if( emergency_reset_rules_.isStateOK(X_nom_predict)){
+
+    }
     // replace the old with the new.
     X_nom_.replace(X_nom_predict);
-    dX_.replace(dX_predict);
+    dX_.replace(dX_predict, P_);
     
+#ifdef VERBOSE_STATE
     X_nom_.show();
-
     std::cout <<"--------------------------" << std::endl;
+#endif
+
 };
 
 void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double t_now){
    
     // Do implementation
+#ifdef VERBOSE_STATE
     std::cout << "Update...\n";
-    
+#endif
+
     Vec3 p_obs;
     Vec4 q_obs;
     p_obs = fixed_param_.R_IB*p_observe;
@@ -123,7 +144,7 @@ void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double 
     dX_update_vec = K*(y-y_hat);
 
     ErrorState dX_update;
-    dX_update.replace(dX_update_vec);
+    dX_update.replace(dX_update_vec, CovarianceMat::Zero());
 
     P_ = (I1515-K*H)*P_*(I1515-K*H).transpose() + K*measurement_noise_.R*K.transpose();
 
@@ -131,14 +152,33 @@ void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double 
     X_nom_.injectErrorState(dX_update);
 
     // Reset dX
-    dX_.replace(dX_update);
+    dX_.replace(dX_update, P_);
 
     // dg_ddX << I66, O63, O63,
     //           O36, I33-skewMat(0.5*dX_update.dth), O36,
     //           O66, O63, I66;
     // P_ = dg_ddX*P_*dg_ddX.transpose();
+#ifdef VERBOSE_STATE
     X_nom_.show();
+#endif
 };
+
+void ESKF::resetFilter(const Vec3& p_init, const Vec4& q_init){
+
+};
+
+ESKF::FixedParameters ESKF::getFixedParameters(){
+    return fixed_param_;
+};
+
+void ESKF::getFilteredStates(NominalState& X_nom_filtered) {
+    this->X_nom_.copyTo(X_nom_filtered);
+};
+
+
+
+
+// private
 
 void ESKF::predictNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt, 
     NominalState& X_nom_update){
@@ -217,63 +257,63 @@ void ESKF::expm_FMat(const FMat& F, const double& dt, int max_approx_order,
     if(max_approx_order < 2) max_approx_order = 2;
     if(max_approx_order > 5) max_approx_order = 5;
 
-if(max_approx_order >= 0){
-    // 0th order 
-    BLOCK33(expmF,0,0) = I33;
-    BLOCK33(expmF,1,1) = I33;
-    BLOCK33(expmF,2,2) = I33;
-    BLOCK33(expmF,3,3) = I33;
-    BLOCK33(expmF,4,4) = I33;
-}
+    if(max_approx_order >= 0){
+        // 0th order 
+        BLOCK33(expmF,0,0) = I33;
+        BLOCK33(expmF,1,1) = I33;
+        BLOCK33(expmF,2,2) = I33;
+        BLOCK33(expmF,3,3) = I33;
+        BLOCK33(expmF,4,4) = I33;
+    }
 
-if(max_approx_order >= 1){
-    // 1st order
-    BLOCK33(expmF,0,1) += I33*dt;
-    BLOCK33(expmF,1,2) += -RBI_skA*dt;
-    BLOCK33(expmF,1,3) += -RBI*dt;
-    BLOCK33(expmF,2,2) += -skW*dt;
-    BLOCK33(expmF,2,4) += -I33*dt;
-}
+    if(max_approx_order >= 1){
+        // 1st order
+        BLOCK33(expmF,0,1) += I33*dt;
+        BLOCK33(expmF,1,2) += -RBI_skA*dt;
+        BLOCK33(expmF,1,3) += -RBI*dt;
+        BLOCK33(expmF,2,2) += -skW*dt;
+        BLOCK33(expmF,2,4) += -I33*dt;
+    }
 
-if(max_approx_order >= 2){
-    // 2nd order
-    BLOCK33(expmF,0,2) += -RBI_skA*dtm2;
-    BLOCK33(expmF,0,3) += -RBI*dtm2;
-    BLOCK33(expmF,1,2) += RBI_skA_skW*dtm2;
-    BLOCK33(expmF,1,4) += RBI_skA*dtm2;
-    BLOCK33(expmF,2,2) += skW2*dtm2;
-    BLOCK33(expmF,2,4) += skW*dtm2;
-}
+    if(max_approx_order >= 2){
+        // 2nd order
+        BLOCK33(expmF,0,2) += -RBI_skA*dtm2;
+        BLOCK33(expmF,0,3) += -RBI*dtm2;
+        BLOCK33(expmF,1,2) += RBI_skA_skW*dtm2;
+        BLOCK33(expmF,1,4) += RBI_skA*dtm2;
+        BLOCK33(expmF,2,2) += skW2*dtm2;
+        BLOCK33(expmF,2,4) += skW*dtm2;
+    }
 
-if(max_approx_order >= 3){
-    // 3rd order
-    BLOCK33(expmF,0,2) += RBI_skA_skW*dtm3;
-    BLOCK33(expmF,0,4) += RBI_skA*dtm3;
-    BLOCK33(expmF,1,2) += -RBI_skA_skW2*dtm3;
-    BLOCK33(expmF,1,4) += -RBI_skA_skW*dtm3;
-    BLOCK33(expmF,2,2) += -skW3*dtm3;
-    BLOCK33(expmF,2,4) += -skW2*dtm3;
-}
+    if(max_approx_order >= 3){
+        // 3rd order
+        BLOCK33(expmF,0,2) += RBI_skA_skW*dtm3;
+        BLOCK33(expmF,0,4) += RBI_skA*dtm3;
+        BLOCK33(expmF,1,2) += -RBI_skA_skW2*dtm3;
+        BLOCK33(expmF,1,4) += -RBI_skA_skW*dtm3;
+        BLOCK33(expmF,2,2) += -skW3*dtm3;
+        BLOCK33(expmF,2,4) += -skW2*dtm3;
+    }
 
-if(max_approx_order >= 4){
-    // 4th order
-    BLOCK33(expmF,0,2) += -RBI_skA_skW2*dtm4;
-    BLOCK33(expmF,0,4) += -RBI_skA_skW*dtm4;
-    BLOCK33(expmF,1,2) += RBI_skA_skW3*dtm4;
-    BLOCK33(expmF,1,4) += RBI_skA_skW2*dtm4;
-    BLOCK33(expmF,2,2) += skW4*dtm4;
-    BLOCK33(expmF,2,4) += skW3*dtm4;
-}
+    if(max_approx_order >= 4){
+        // 4th order
+        BLOCK33(expmF,0,2) += -RBI_skA_skW2*dtm4;
+        BLOCK33(expmF,0,4) += -RBI_skA_skW*dtm4;
+        BLOCK33(expmF,1,2) += RBI_skA_skW3*dtm4;
+        BLOCK33(expmF,1,4) += RBI_skA_skW2*dtm4;
+        BLOCK33(expmF,2,2) += skW4*dtm4;
+        BLOCK33(expmF,2,4) += skW3*dtm4;
+    }
 
-if(max_approx_order >=5){
-    // 5th order
-    BLOCK33(expmF,0,2) += RBI_skA_skW3*dtm5;
-    BLOCK33(expmF,0,4) += RBI_skA_skW2*dtm5;
-    BLOCK33(expmF,1,2) += -RBI_skA_skW4*dtm5;
-    BLOCK33(expmF,1,4) += -RBI_skA_skW3*dtm5;
-    BLOCK33(expmF,2,2) += -skW5*dtm5;
-    BLOCK33(expmF,2,4) += -skW4*dtm5;
-}
+    if(max_approx_order >=5){
+        // 5th order
+        BLOCK33(expmF,0,2) += RBI_skA_skW3*dtm5;
+        BLOCK33(expmF,0,4) += RBI_skA_skW2*dtm5;
+        BLOCK33(expmF,1,2) += -RBI_skA_skW4*dtm5;
+        BLOCK33(expmF,1,4) += -RBI_skA_skW3*dtm5;
+        BLOCK33(expmF,2,2) += -skW5*dtm5;
+        BLOCK33(expmF,2,4) += -skW4*dtm5;
+    }
 
 };
 
