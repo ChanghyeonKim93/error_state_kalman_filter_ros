@@ -2,7 +2,7 @@
     <!-- topic names -->
     <arg name="topic_imu"          default="/vn100t/imu"/>
     <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
-    <!--arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/-->
+    <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
     <arg name="topic_optitrack"    default="/mavros/vision_pose/pose"/>
 
     <!-- topicnames of the 'nav_msgs' to be published -->

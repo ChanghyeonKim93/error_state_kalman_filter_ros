@@ -20,6 +20,8 @@
 // Error state kalman filter.
 #include <error_state_kalman_filter.h>
 
+#include "timer.h"
+
 using namespace Eigen;
 
 #define FilterType ESKF

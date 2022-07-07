@@ -24,11 +24,11 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
 
     // Subscribing
     sub_imu_       = nh_.subscribe<sensor_msgs::Imu>
-        (topicname_imu_,         1, &StateEstimator::callbackIMU, this);
+        (topicname_imu_,         5, &StateEstimator::callbackIMU, this);
     sub_mag_       = nh_.subscribe<sensor_msgs::MagneticField>
-        (topicname_mag_,         1, &StateEstimator::callbackMag, this);
+        (topicname_mag_,         5, &StateEstimator::callbackMag, this);
     sub_optitrack_ = nh_.subscribe<geometry_msgs::PoseStamped>
-        (topicname_optitrack_,   1, &StateEstimator::callbackOptitrack, this);
+        (topicname_optitrack_,   5, &StateEstimator::callbackOptitrack, this);
 
     // Publishing 
     pub_nav_raw_      = nh_.advertise<nav_msgs::Odometry>
@@ -66,16 +66,19 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     am << imu_current_.linear_acceleration.x, imu_current_.linear_acceleration.y, imu_current_.linear_acceleration.z;
     wm << imu_current_.angular_velocity.x, imu_current_.angular_velocity.y, imu_current_.angular_velocity.z;
 
-    // Predict filter
-    filter_->predict(am, wm, t_now);
-    
     if( filter_->isInitialized() ){
+
+        // Predict filter
+        timer::tic();
+        filter_->predict(am, wm, t_now);
+        timer::toc(0);
+
         // publish the filtered data
         ESKF::NominalState X_nom;
         filter_->getFilteredStates(X_nom);
         
         // Fill the nav message
-        nav_filtered_current_.header.frame_id = "world";
+        nav_filtered_current_.header.frame_id = "map";
         ++nav_filtered_current_.header.seq;
         nav_filtered_current_.header.stamp = ros::Time::now();
 
@@ -133,7 +136,7 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
     filter_->updateOptitrack(p_observe, q_observe, t_now);
     
     // Fill the nav message
-    nav_raw_current_.header.frame_id = "world";
+    nav_raw_current_.header.frame_id = "map";
     ++nav_raw_current_.header.seq;
     nav_raw_current_.header.stamp = ros::Time::now();
     

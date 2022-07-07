@@ -25,11 +25,11 @@ isInitialized_(false)
            O33, O33, I33, O33,
            O33, O33, O33, I33;
            
-    Vec3 ba_init(0.011, 0.007, 0.201);
-    Vec3 bg_init(0.0043586,-0.0011758,-0.011671);
-
-    X_nom_.setBiasAcc(ba_init);
-    X_nom_.setBiasGyro(bg_init);
+    ba_init_ << 0.011, 0.007, 0.201;
+    bg_init_ << 0.0043586,-0.0011758,-0.011671;
+    
+    X_nom_.setBiasAcc(ba_init_);
+    X_nom_.setBiasGyro(bg_init_);
 
     std::cout << "Error State Kalman Filter - constructed\n";
 };
@@ -69,30 +69,30 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
         X_nom_predict);
 
     // 2. error-state prediction
-    predictError(X_nom_, dX_, am, wm, dt,
-        dX_predict);
-
-    // 3. Error Covariance propagation
     FMat F0;
+    expmFMat eF0dt;
     errorStateF(X_nom_, am, wm, 
         F0);
     
-    FMat eF0dt;
     this->expm_FMat(F0,dt,5, 
         eF0dt);
 
-    P_ = eF0dt * P_ * eF0dt.transpose() + Fi_*process_noise_.Q*Fi_.transpose();
+    predictError(eF0dt, dX_,
+        dX_predict);
+
+    // 3. Error Covariance propagation
+    CovarianceMat P_predict = eF0dt * P_ * eF0dt.transpose() + Fi_*process_noise_.Q*Fi_.transpose();
     
     if(!emergency_reset_rules_.isPositionInRange(X_nom_predict)){
-        std::cout << "WANNING!! - estimated position is out of the position limit range!";
+        std::cout << "==========WANNING!! - estimated position is out of the position limit range!\n";
     }
-
-    if( emergency_reset_rules_.isStateOK(X_nom_predict)){
-
+    else{ // state OK.
     }
+    
     // replace the old with the new.
     X_nom_.replace(X_nom_predict);
-    dX_.replace(dX_predict, P_);
+    dX_.replace(dX_predict);
+    P_ = P_predict;    
     
 #ifdef VERBOSE_STATE
     X_nom_.show();
@@ -139,25 +139,28 @@ void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double 
     
     Vec7 y_hat;
     y_hat << (X_nom_.p+dX_.dp),(geometry::q_right_mult(geometry::rotvec2q(dX_.dth))*X_nom_.q); 
-    
+        
     ErrorStateVec dX_update_vec;
-    dX_update_vec = K*(y-y_hat);
+    ErrorStateVec dX_addition_vec;
+    dX_addition_vec =  K*(y-y_hat);
+    dX_update_vec = dX_.getVectorform() + dX_addition_vec;
 
     ErrorState dX_update;
-    dX_update.replace(dX_update_vec, CovarianceMat::Zero());
-
-    P_ = (I1515-K*H)*P_*(I1515-K*H).transpose() + K*measurement_noise_.R*K.transpose();
+    dX_update.replace(dX_update_vec);
 
     // Injection of the observed error into the nominal
     X_nom_.injectErrorState(dX_update);
 
     // Reset dX
-    dX_.replace(dX_update, P_);
+    dX_.replace(dX_addition_vec);
 
-    // dg_ddX << I66, O63, O63,
+    // Replace Error Covariance Matrix
+    CovarianceMat P_update = (I1515-K*H)*P_*(I1515-K*H).transpose() + K*measurement_noise_.R*K.transpose();    // dg_ddX << I66, O63, O63,
     //           O36, I33-skewMat(0.5*dX_update.dth), O36,
     //           O66, O63, I66;
     // P_ = dg_ddX*P_*dg_ddX.transpose();
+    P_ = P_update;
+    
 #ifdef VERBOSE_STATE
     X_nom_.show();
 #endif
@@ -193,13 +196,14 @@ void ESKF::predictNominal(const NominalState& X_nom, const Vec3& am, const Vec3&
     X_nom_update.bg = X_nom.bg;
 };
 
-void ESKF::predictError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
+void ESKF::predictError(const expmFMat& eF0dt, const ErrorState& dX,
     ErrorState& dX_update)
 {
-    FMat eF0dt;
-
     // Update nominal state
-    // dX_update = eF0dt*dX;
+    ErrorStateVec dX_vec_update;
+    dX_vec_update = eF0dt*(dX.getVectorform());
+
+    dX_update.replace(dX_vec_update);
 };
 
 void ESKF::errorStateF(const NominalState& X_nom, const Vec3& am, const Vec3& wm,

@@ -57,7 +57,7 @@ private:
     // Related to Kalman filter implementation .
     void predictNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt,
                        NominalState& X_nom_update);
-    void predictError(const NominalState& X_nom, const ErrorState& dX, const Vec3& am, const Vec3& wm, double dt,
+    void predictError(const expmFMat& eF0dt, const ErrorState& dX,
                        ErrorState& dX_update);
 
     void errorStateF(const NominalState& X_nom, const Vec3& am, const Vec3& wm,
@@ -145,6 +145,7 @@ public:
             bg = bgi;
         };
         void setPosition(const Vec3& pi)  { p  = pi;  };
+        void setVelocity(const Vec3& vi)  { v  = vi;  };
         void setQuaternion(const Vec4& qi){ q  = qi;  };
         void setBiasAcc(const Vec3& bai)  { ba = bai; };
         void setBiasGyro(const Vec3& bgi) { bg = bgi; };
@@ -233,6 +234,13 @@ public:
             dbg = dX.dbg;
             covariance.setValues(cov_mat);
         };
+        void replace(const ErrorState& dX){
+            dp  = dX.dp;
+            dv  = dX.dv;
+            dth = dX.dth;
+            dba = dX.dba;
+            dbg = dX.dbg;
+        };
         void replace(const ErrorState& dX, const CovarianceMat& cov_mat){
             dp  = dX.dp;
             dv  = dX.dv;
@@ -240,6 +248,13 @@ public:
             dba = dX.dba;
             dbg = dX.dbg;
             covariance.setValues(cov_mat);
+        };
+        void replace(const ErrorStateVec& dX_vec){
+            dp = dX_vec.block<3,1>(0,0);
+            dv = dX_vec.block<3,1>(3,0);
+            dth = dX_vec.block<3,1>(6,0);
+            dba = dX_vec.block<3,1>(9,0);
+            dbg = dX_vec.block<3,1>(12,0);
         };
         void replace(const ErrorStateVec& dX_vec, const CovarianceMat& cov_mat){
             dp = dX_vec.block<3,1>(0,0);
@@ -252,6 +267,12 @@ public:
         ErrorStateCovariance getCovariance(){
             return covariance;
         };  
+
+        ErrorStateVec getVectorform() const {
+            ErrorStateVec vec;
+            vec << dp, dv, dth, dba, dbg;
+            return vec;
+        };
     };
 
     struct Measurement{
@@ -281,7 +302,7 @@ public:
         int dim;
         QMat Q;
         ProcessNoise() : 
-        sig_na(0.001), sig_ng(0.00001), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
+        sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
             Q = QMat::Identity();
             for(int i = 0; i < 3; ++i){
                 Q(i,i) = POW2(sig_na);
@@ -297,7 +318,7 @@ public:
         double sig_q; // quaternion noise // 0.015 ( 0.015 rad)
         int dim;
         RMat R; 
-        MeasurementNoise() : sig_p(0.005), sig_q(0.015), dim(7) { 
+        MeasurementNoise() : sig_p(0.005), sig_q(0.01), dim(7) { 
             R = RMat::Identity();
             for(int i = 0; i < 3; ++i) R(i,i) = POW2(sig_p);
             for(int i = 0; i < 4; ++i) R(3+i,3+i) = POW2(sig_q);
@@ -313,14 +334,14 @@ public:
 
         EmergencyResetRules(){
             // default values
-            thres_quaternion = 0.02;
             thres_position    = 0.03;
+            thres_quaternion  = cos(0.05); // 0.05 radians == 2.645916 degrees
             thres_cov_p       = 1.0;
             thres_cov_v       = 1.0;
             thres_cov_q       = 1.0;
         };
         bool isPositionInRange(const NominalState& X_nom){
-            double position_limit[2] = {-0.5, 3.0};
+            double position_limit[2] = {-3.5, 3.5};
             bool isOK=true;
             if(X_nom.p(0) >= position_limit[0] && X_nom.p(0) <= position_limit[1] &&
                X_nom.p(1) >= position_limit[0] && X_nom.p(1) <= position_limit[1] &&
@@ -331,14 +352,20 @@ public:
 
             return isOK;
         };
-        bool isStateOK(const Vec3& p_measure, const Vec3& q_measure, const NominalState& X_nom){            
+        bool isStateOK(const Vec3& p_measure, const Vec4& q_measure, const NominalState& X_nom){            
             // check position
             Vec3 diff_p = p_measure - X_nom.p;
-            if(diff_p.norm() >= thres_position) return false;
+            if(diff_p.norm() >= thres_position) {
+                std::cout << "==========diff p: " << diff_p.norm() <<" / thres:" << thres_position << std::endl;
+                return false;
+            }
 
             // check quaternion
-            Vec4 diff_q = geoemtry::q_mult(q_measure, geometry::q_conj(X_nom.q));
-            if(diff_q.norm() >= thres_quaternion) return false;
+            Vec4 diff_q = geometry::q1_mult_q2(q_measure, geometry::q_conj(X_nom.q));
+            if(diff_q(0) <= thres_quaternion) {
+                std::cout << "==========diff q: " << diff_q(0) <<" / thres:" << thres_quaternion  << std::endl;
+                return false;
+            }
 
             // check covariance
             // NOT IMPLEMENTED...
@@ -351,6 +378,9 @@ public:
 private:
     FixedParameters fixed_param_;
 
+    Vec3 ba_init_;
+    Vec3 bg_init_;
+
     NominalState X_nom_;
     ErrorState   dX_;
     CovarianceMat P_;
@@ -359,7 +389,7 @@ private:
     MeasurementNoise measurement_noise_;
     
     EmergencyResetRules emergency_reset_rules_;
-
+    
     Matrix<double,15,12> Fi_;
 
     double t_prev_;
