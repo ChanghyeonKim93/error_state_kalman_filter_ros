@@ -14,6 +14,7 @@ namespace geometry {
     Matrix3d q2r(const Vector4d& q);
     Vector4d rotvec2q(const Vector3d& w);
     Matrix3d a2r(double r, double p, double y);
+    Vector4d r2q(const Matrix3d& R);
 };
 
 

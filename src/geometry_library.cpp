@@ -93,4 +93,53 @@ namespace geometry {
         return (Rz*Ry*Rx);
     };
 
+    Vector4d r2q(const Matrix3d& R){
+        Vector4d q;
+        double qw,qx,qy,qz;
+
+        double m00 = R(0,0);
+        double m11 = R(1,1);
+        double m22 = R(2,2);
+
+        double m21 = R(2,1);
+        double m12 = R(1,2);
+        double m02 = R(0,2);
+        double m20 = R(2,0);
+        double m10 = R(1,0);
+        double m01 = R(0,1);
+
+        double tr = R(0,0) + R(1,1) + R(2,2);
+
+        if (tr > 0) { 
+            double S = sqrt(tr+1.0) * 2; // S=4*qw 
+            qw = 0.25 * S;
+            qx = (m21 - m12) / S;
+            qy = (m02 - m20) / S; 
+            qz = (m10 - m01) / S; 
+        } else if ((m00 > m11)&(m00 > m22)) { 
+            double S = sqrt(1.0 + m00 - m11 - m22) * 2; // S=4*qx 
+            qw = (m21 - m12) / S;
+            qx = 0.25 * S;
+            qy = (m01 + m10) / S; 
+            qz = (m02 + m20) / S; 
+        } else if (m11 > m22) { 
+            double S = sqrt(1.0 + m11 - m00 - m22) * 2; // S=4*qy
+            qw = (m02 - m20) / S;
+            qx = (m01 + m10) / S; 
+            qy = 0.25 * S;
+            qz = (m12 + m21) / S; 
+        } else { 
+            double S = sqrt(1.0 + m22 - m00 - m11) * 2; // S=4*qz
+            qw = (m10 - m01) / S;
+            qx = (m02 + m20) / S;
+            qy = (m12 + m21) / S;
+            qz = 0.25 * S;
+        }
+
+        q(0) = qw;
+        q(1) = qx;
+        q(2) = qy;
+        q(3) = qz;
+        return q;
+    };
 };
