@@ -1,25 +1,12 @@
 #include "state_estimator.h"
 StateEstimator::StateEstimator(ros::NodeHandle& nh)
-: nh_(nh)
+: nh_(nh), verbose_all_estimation_(false)
 {
     ROS_INFO_STREAM("StateEstimator - starts");
 
-    // get parameters
-    if(!ros::param::has("~topic_imu")) throw std::runtime_error("StateEstimator - no 'topic_imu' is set. terminate program.\n");
-    ros::param::get("~topic_imu", topicname_imu_);
+    // get ros parameters
+    this->getParameters();
 
-    if(!ros::param::has("~topic_mag")) throw std::runtime_error("StateEstimator - no 'topic_mag' is set. terminate program.\n");
-    ros::param::get("~topic_mag", topicname_mag_);
-
-    if(!ros::param::has("~topic_optitrack")) throw std::runtime_error("StateEstimator - no 'topic_optitrack' is set. terminate program.\n");
-    ros::param::get("~topic_optitrack", topicname_optitrack_);
-    
-    if(!ros::param::has("~topic_nav_filtered")) throw std::runtime_error("StateEstimator - no 'topic_nav_filtered' is set. terminate programe.\n");
-    ros::param::get("~topic_nav_filtered", topicname_nav_filtered_);
-    
-    if(!ros::param::has("~topic_nav_raw")) throw std::runtime_error("StateEstimator - no 'topic_nav_raw' is set. terminate programe.\n");
-    ros::param::get("~topic_nav_raw", topicname_nav_raw_);
-    
     ROS_INFO_STREAM("StateEstimator - ROS parameters are successfully got.\n");
 
     // Subscribing
@@ -39,6 +26,19 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
     // Filter generation
     filter_ = std::make_unique<FilterType>();
 
+    // Set parameters 
+    filter_->setBias(acc_bias_[0],  acc_bias_[1],  acc_bias_[2],
+                     gyro_bias_[0], gyro_bias_[1], gyro_bias_[2], 
+                     mag_bias_[0], mag_bias_[1], mag_bias_[2]);
+    filter_->setIMUNoise(noise_std_acc_, noise_std_gyro_, noise_std_mag_);
+
+    Eigen::Matrix3d R_BI;
+    R_BI << R_BI_vec_[0],R_BI_vec_[1], R_BI_vec_[2],
+            R_BI_vec_[3],R_BI_vec_[4], R_BI_vec_[5],
+            R_BI_vec_[6],R_BI_vec_[7], R_BI_vec_[8];
+
+    filter_->setRotationFromBodyToIMU(R_BI);
+
     // run
     this->run();
 };
@@ -50,7 +50,18 @@ StateEstimator::~StateEstimator(){
 void StateEstimator::run(){
     ROS_INFO_STREAM("StateEstimator - runs at [" << 2000 <<"] Hz.");
     ros::Rate rate(2000);
+    
+    ros::Time t_prev = ros::Time::now();
+    ros::Time t_curr;
     while(ros::ok()){
+
+        t_curr = ros::Time::now();
+        
+        if( verbose_all_estimation_ && (t_curr-t_prev).toSec() >= 1.0 ) {
+            filter_->showFilterStates();
+            t_prev = t_curr;
+        }
+
         ros::spinOnce();
         rate.sleep();
     }
@@ -111,6 +122,7 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
         nav_filtered_current_.twist.twist.angular.y = imu_current_.angular_velocity.y;
         nav_filtered_current_.twist.twist.angular.z = imu_current_.angular_velocity.z;
 
+        // Publish filtered states
         pub_nav_filtered_.publish(nav_filtered_current_);
     }
 };
@@ -164,8 +176,61 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
 
 void StateEstimator::getParameters(){
     
-    if(!ros::param::has("~noise_std"))
-        throw std::runtime_error("there is no 'noise_std'. ");
+    // get parameters
+    if(!ros::param::has("~topic_imu")) throw std::runtime_error("StateEstimator - no 'topic_imu' is set. terminate program.\n");
+    ros::param::get("~topic_imu", topicname_imu_);
 
+    if(!ros::param::has("~topic_mag")) throw std::runtime_error("StateEstimator - no 'topic_mag' is set. terminate program.\n");
+    ros::param::get("~topic_mag", topicname_mag_);
 
+    if(!ros::param::has("~topic_optitrack")) throw std::runtime_error("StateEstimator - no 'topic_optitrack' is set. terminate program.\n");
+    ros::param::get("~topic_optitrack", topicname_optitrack_);
+    
+    if(!ros::param::has("~topic_nav_filtered")) throw std::runtime_error("StateEstimator - no 'topic_nav_filtered' is set. terminate program.\n");
+    ros::param::get("~topic_nav_filtered", topicname_nav_filtered_);
+    
+    if(!ros::param::has("~topic_nav_raw")) throw std::runtime_error("StateEstimator - no 'topic_nav_raw' is set. terminate program.\n");
+    ros::param::get("~topic_nav_raw", topicname_nav_raw_);
+
+    if(!ros::param::has("~verbose_all_estimation")) throw std::runtime_error("StateEstimator - no 'verbose_all_estimation_' is set. terminate program.\n");
+    ros::param::get("~verbose_all_estimation", verbose_all_estimation_);
+
+    ROS_INFO_STREAM("Verbose all estimation: " << (verbose_all_estimation_ ? "true" : "false") );
+
+    if(!ros::param::has("~noise_accel"))
+        throw std::runtime_error("there is no 'noise_accel'. ");
+    if(!ros::param::has("~noise_gyro"))
+        throw std::runtime_error("there is no 'noise_gyro'. ");
+    if(!ros::param::has("~noise_mag"))
+        throw std::runtime_error("there is no 'noise_mag'. ");
+    if(!ros::param::has("~acc_bias"))
+        throw std::runtime_error("there is no 'acc_bias'. ");
+    if(!ros::param::has("~gyro_bias"))
+        throw std::runtime_error("there is no 'gyro_bias'. ");
+    if(!ros::param::has("~mag_bias"))
+        throw std::runtime_error("there is no 'mag_bias'. ");
+
+    if(!ros::param::has("~R_BI"))
+        throw std::runtime_error("there is no 'R_BI'. ");
+
+    nh_.param("acc_bias",  acc_bias_,  std::vector<double>());
+    nh_.param("gyro_bias", gyro_bias_, std::vector<double>());
+    nh_.param("mag_bias",  mag_bias_,  std::vector<double>());
+
+    nh_.param("R_BI",  R_BI_vec_,  std::vector<double>());
+
+    if(acc_bias_.size() != 3)    
+        throw std::runtime_error("'acc_bias_.size() != 3. acc_bias_.size() should be 3.");
+    if(gyro_bias_.size() != 3)    
+        throw std::runtime_error("'gyro_bias_.size() != 3. gyro_bias_.size() should be 3.");
+    if(mag_bias_.size() != 3)    
+        throw std::runtime_error("'mag_bias_.size() != 3. mag_bias_.size() should be 3.");    
+    
+    if(R_BI_vec_.size() != 9)    
+        throw std::runtime_error("'R_BI_vec_.size() != 9. R_BI_vec_.size() should be 9.");    
+    
+    ros::param::get("~noise_accel", noise_std_acc_);
+    ros::param::get("~noise_gyro",  noise_std_gyro_);
+    ros::param::get("~noise_mag",   noise_std_mag_);
+    
 };

@@ -16,7 +16,7 @@ emergency_reset_rules_(),
 isInitialized_(false)
 {
     // initialize error covariance matrix
-    P_ = CovarianceMat::Identity()*0.005;
+    P_ = CovarianceMat::Identity()*0.0005;
 
     // initialize Fi matrix
     Fi_ << O33, O33, O33, O33, 
@@ -25,8 +25,8 @@ isInitialized_(false)
            O33, O33, I33, O33,
            O33, O33, O33, I33;
            
-    ba_init_ << 0.011, 0.007, 0.201;
-    bg_init_ << 0.0043586,-0.0011758,-0.011671;
+    ba_init_ << 0.0, 0.0, 0.0;
+    bg_init_ << 0.0, 0.0, 0.0;
     
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
@@ -36,6 +36,60 @@ isInitialized_(false)
 
 ESKF::~ESKF(){
     std::cout << "Error State Kalman Filter - destructed\n";
+};
+
+
+void ESKF::setRotationFromBodyToIMU(const Mat33& R_BI)
+{
+    if(isInitialized_)
+        throw std::runtime_error("setRotationFromBodyToIMU() can only be executed when 'isInitialized_ == false'\n");
+        
+    fixed_param_.setRotationFromBodyToIMU(R_BI);
+    
+    std::cout << "ESKF::setRotationFromBodyToIMU() with a 3D rotation matrix input:\n";
+    std::cout << R_BI << std::endl;    
+
+};
+
+void ESKF::setRotationFromBodyToIMU(const Vec4& q_BI)
+{
+    if(isInitialized_)
+        throw std::runtime_error("setRotationFromBodyToIMU() can only be executed when 'isInitialized_ == false'\n");
+        
+    fixed_param_.setRotationFromBodyToIMU(q_BI);
+
+    std::cout << "ESKF::setRotationFromBodyToIMU() with a quaternion input:\n";
+    std::cout << q_BI.transpose() << std::endl;
+
+};
+
+void ESKF::setBias(double bias_ax, double bias_ay, double bias_az, 
+    double bias_gx, double bias_gy, double bias_gz,
+    double bias_mx, double bias_my, double bias_mz)
+{
+    if(isInitialized_)
+        throw std::runtime_error("setBias() can only be executed when 'isInitialized_ == false'\n");
+
+    ba_init_ << bias_ax, bias_ay, bias_az;
+    bg_init_ << bias_gx, bias_gy, bias_gz;
+    
+    X_nom_.setBiasAcc(ba_init_);
+    X_nom_.setBiasGyro(bg_init_);
+
+    std::cout << "ESKF::setBias()...\n";
+    std::cout << "   Set bias (acc ): " << ba_init_.transpose() << "\n";
+    std::cout << "   Set bias (gyro): " << bg_init_.transpose() << "\n";
+};
+
+void ESKF::setIMUNoise(double noise_acc, double noise_gyro, double noise_mag){
+    if(isInitialized_)
+        throw std::runtime_error("setIMUNoise() can only be executed when 'isInitialized_ == false'\n");
+
+    process_noise_.setNoise(noise_acc, noise_gyro, 1e-9, 1e-9);
+
+    std::cout << "ESKF::setIMUNoise()...\n";
+    std::cout << "   Set noise_acc : " << noise_acc << "\n";
+    std::cout << "   Set noise_gyro: " << noise_gyro << "\n";
 };
 
 bool ESKF::isInitialized(){
@@ -54,9 +108,9 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
 #endif
 
     double dt = t_now - t_prev_;
-    if(dt > 0.02) {
+    if(dt > 0.05) {
         std::cout << " WARNNING: TIME MIGHT BE PASSED TOO LONG!... 'dt' is set to 0.05 s.\n";
-        dt = 0.02;
+        dt = 0.05;
     }
     t_prev_ = t_now;
 
@@ -176,6 +230,20 @@ ESKF::FixedParameters ESKF::getFixedParameters(){
 
 void ESKF::getFilteredStates(NominalState& X_nom_filtered) {
     this->X_nom_.copyTo(X_nom_filtered);
+};
+
+void ESKF::showFilterStates(){
+    std::cout << "---- Current estimation ----\n";
+    std::cout << "p: " << X_nom_.p.transpose() << " / ";
+    std::cout << "v: " << X_nom_.v.transpose() << " / ";
+    std::cout << "q: " << X_nom_.q.transpose() << " / ";
+    std::cout << "ba: " << X_nom_.ba.transpose() << " / ";
+    std::cout << "bg: " << X_nom_.bg.transpose() << "\n";
+    std::cout << "cov_dp: " << P_(0,0) << "," << P_(1,1) << "," <<P_(2,2) << " / ";
+    std::cout << "cov_dv: " << P_(3,3) << "," << P_(4,4) << "," <<P_(5,5) << " / ";
+    std::cout << "cov_dq: " << P_(6,6) << "," << P_(7,7) << "," <<P_(8,8) << " / ";
+    std::cout << "cov_dba: " << P_(9,9) << "," << P_(10,10) << "," <<P_(11,11) << " / ";
+    std::cout << "cov_dbg: " << P_(12,12) << "," << P_(13,13) << "," <<P_(14,14) << " / ";
 };
 
 

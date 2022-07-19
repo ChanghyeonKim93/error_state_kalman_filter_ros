@@ -70,6 +70,18 @@ public:
     ESKF();
     ~ESKF();
 
+public:
+    void setRotationFromBodyToIMU(const Mat33& R_BI);
+    void setRotationFromBodyToIMU(const Vec4& q_BI);
+
+    void setBias(double bias_ax, double bias_ay, double bias_az, 
+        double bias_gx, double bias_gy, double bias_gz,
+        double bias_mx, double bias_my, double bias_mz);
+
+    void setIMUNoise(double noise_acc, double noise_gyro, double noise_mag);
+
+
+public:
     bool isInitialized();
 
     void predict(const Vec3& am, const Vec3& wm, double t_now); // by imu 
@@ -81,6 +93,8 @@ public:
     FixedParameters getFixedParameters();
     void getFilteredStates(NominalState& x_nom_filtered);
     void getCovariance(NominalState& x_nom_filtered);
+
+    void showFilterStates();
 
 // Test functions
 public:
@@ -116,6 +130,22 @@ public:
             q_IB = geometry::q_conj(q_BI);
 
             grav << 0.0, 0.0, -GRAVITY_MAGNITUDE;
+        };
+
+        void setRotationFromBodyToIMU(const Mat33& R_BI_input){
+            R_BI = R_BI_input;
+            R_IB = R_BI.transpose();
+
+            q_BI = geometry::r2q(R_BI);
+            q_IB = geometry::q_conj(q_BI);
+        };
+
+        void setRotationFromBodyToIMU(const Vec4& q_BI_input){
+            q_BI = q_BI_input;
+            q_IB = geometry::q_conj(q_BI);
+
+            R_BI = geometry::q2r(q_BI);
+            R_IB = R_BI.transpose();
         };
     };
 
@@ -314,6 +344,34 @@ public:
                 Q(9+i,9+i) = POW2(sig_nbg);
             }
         };
+
+        void setNoise(double noise_acc, double noise_gyro, double noise_ba, double noise_bg)
+        {
+            if(noise_acc <= 0.0000001) 
+                throw std::runtime_error("sig_na should be larger then 0.0000001.");
+                
+            if(noise_gyro <= 0.0000001) 
+                throw std::runtime_error("sig_ng should be larger then 0.0000001.");
+            
+            if(noise_ba <= 0.0) 
+                throw std::runtime_error("sig_nba should be larger then 0.0.");
+            
+            if(noise_bg <= 0.0) 
+                throw std::runtime_error("sig_nbg should be larger then 0.0.");
+                
+            sig_na  = noise_acc;
+            sig_ng  = noise_gyro;
+            sig_nba = noise_ba;
+            sig_nbg = noise_bg;
+
+            Q = QMat::Identity();
+            for(int i = 0; i < 3; ++i){
+                Q(i,i) = POW2(sig_na);
+                Q(3+i,3+i) = POW2(sig_ng);
+                Q(6+i,6+i) = POW2(sig_nba);
+                Q(9+i,9+i) = POW2(sig_nbg);
+            }
+        };
     };
 
     struct MeasurementNoise{
@@ -344,7 +402,7 @@ public:
             thres_cov_q       = 1.0;
         };
         bool isPositionInRange(const NominalState& X_nom){
-            double position_limit[2] = {-3.5, 3.5};
+            double position_limit[2] = {-10.0, 10.0};
             bool isOK=true;
             if(X_nom.p(0) >= position_limit[0] && X_nom.p(0) <= position_limit[1] &&
                X_nom.p(1) >= position_limit[0] && X_nom.p(1) <= position_limit[1] &&
@@ -399,7 +457,6 @@ private:
     double t_init_;
 
     bool isInitialized_;
-
 
 
 public:

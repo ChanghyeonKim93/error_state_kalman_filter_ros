@@ -71,15 +71,19 @@ private:
 private:   
     std::unique_ptr<FilterType> filter_;
     
-    double acc_bias_[3];
-    double gyro_bias_[3];
-    double mag_bias_[3];
+    std::vector<double> acc_bias_;
+    std::vector<double> gyro_bias_;
+    std::vector<double> mag_bias_;
 
     double noise_std_acc_;
     double noise_std_gyro_;
     double noise_std_mag_;
 
     double noise_measurement_;
+
+    std::vector<double> R_BI_vec_;
+
+    bool verbose_all_estimation_;
 
     
 };

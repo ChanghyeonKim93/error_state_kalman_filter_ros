@@ -9,12 +9,43 @@
     <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
     <arg name="topic_nav_filtered" default="/state_estimator/filtered"/>
 
-    <node pkg="state_estimator" name="state_estimator_node" type="state_estimator_node" output="screen">
-        <param name="topic_imu"         type="string" value="$(arg topic_imu)"/>
-        <param name="topic_mag"         type="string" value="$(arg topic_mag)"/>
-        <param name="topic_optitrack"   type="string" value="$(arg topic_optitrack)"/>
+    <!-- Verbose all estimation states at every second -->
+    <arg name="verbose_all_estimation" default="true"/>
 
-        <param name="topic_nav_raw"        type="string" value="$(arg topic_nav_raw)"/>
-        <param name="topic_nav_filtered"   type="string" value="$(arg topic_nav_filtered)"/>
+    <!-- IMU noise parameters -->
+    <arg name="noise_accel"        default="0.005"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
+    <arg name="noise_gyro"         default="0.00005"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
+    <arg name="noise_mag"          default="0.0001"/> <!-- no reference... not used in this algorithm-->
+
+    <!-- IMU bias initial values. If you dont know, set zeros.-->
+    <arg name="acc_bias"           default="[0.0,0.0,0.0]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
+    <arg name="gyro_bias"          default="[0.0,0.0,0.0]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
+    <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
+
+    <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
+    <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/> 
+    <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
+    <!-- MPU9250 with CHK camera: [0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]-->
+
+    <node pkg="state_estimator" name="state_estimator_node" type="state_estimator_node" output="screen">
+        <param name="topic_imu"          type="string" value="$(arg topic_imu)"/>
+        <param name="topic_mag"          type="string" value="$(arg topic_mag)"/>
+        <param name="topic_optitrack"    type="string" value="$(arg topic_optitrack)"/>
+
+        <param name="topic_nav_raw"      type="string" value="$(arg topic_nav_raw)"/>
+        <param name="topic_nav_filtered" type="string" value="$(arg topic_nav_filtered)"/>
+       
+        <param name="verbose_all_estimation" type="bool" value="$(arg verbose_all_estimation)"/>
+    
+        <param name="noise_accel"        type="double" value="$(arg noise_accel)"/>
+        <param name="noise_gyro"         type="double" value="$(arg noise_gyro)"/>
+        <param name="noise_mag"          type="double" value="$(arg noise_mag)"/>
+        
+        <rosparam param="acc_bias"  subst_value="True"> $(arg acc_bias)  </rosparam>
+        <rosparam param="gyro_bias" subst_value="True"> $(arg gyro_bias) </rosparam>
+        <rosparam param="mag_bias"  subst_value="True"> $(arg mag_bias)  </rosparam>
+
+        <rosparam param="R_BI"  subst_value="True"> $(arg R_BI)  </rosparam>
+        
     </node>
 </launch>
