@@ -234,15 +234,15 @@ void ESKF::getFilteredStates(NominalState& X_nom_filtered) {
 
 void ESKF::showFilterStates(){
     std::cout << "---- Current estimation ----\n";
-    std::cout << "p: " << X_nom_.p.transpose() << " / ";
-    std::cout << "v: " << X_nom_.v.transpose() << " / ";
-    std::cout << "q: " << X_nom_.q.transpose() << " / ";
-    std::cout << "ba: " << X_nom_.ba.transpose() << " / ";
-    std::cout << "bg: " << X_nom_.bg.transpose() << "\n";
-    std::cout << "cov_dp: " << P_(0,0) << "," << P_(1,1) << "," <<P_(2,2) << " / ";
-    std::cout << "cov_dv: " << P_(3,3) << "," << P_(4,4) << "," <<P_(5,5) << " / ";
-    std::cout << "cov_dq: " << P_(6,6) << "," << P_(7,7) << "," <<P_(8,8) << " / ";
-    std::cout << "cov_dba: " << P_(9,9) << "," << P_(10,10) << "," <<P_(11,11) << " / ";
+    std::cout << "p: " << X_nom_.p.transpose() << " m \n";
+    std::cout << "v: " << X_nom_.v.transpose() << " m/s\n";
+    std::cout << "q: " << X_nom_.q.transpose() << "\n";
+    std::cout << "ba: " << X_nom_.ba.transpose() << " m/s2\n";
+    std::cout << "bg: " << X_nom_.bg.transpose() << " rad/s\n";
+    std::cout << "cov_dp: " << P_(0,0) << "," << P_(1,1) << "," <<P_(2,2) << " m\n";
+    std::cout << "cov_dv: " << P_(3,3) << "," << P_(4,4) << "," <<P_(5,5) << " m/s \n";
+    std::cout << "cov_dq: " << P_(6,6) << "," << P_(7,7) << "," <<P_(8,8) << "\n";
+    std::cout << "cov_dba: " << P_(9,9) << "," << P_(10,10) << "," <<P_(11,11) << "\n";
     std::cout << "cov_dbg: " << P_(12,12) << "," << P_(13,13) << "," <<P_(14,14) << "\n\n";
 };
 
