@@ -13,13 +13,13 @@
     <arg name="verbose_all_estimation" default="true"/>
 
     <!-- IMU noise parameters -->
-    <arg name="noise_accel"        default="0.005"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
-    <arg name="noise_gyro"         default="0.00005"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
+    <arg name="noise_accel"        default="0.001"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
+    <arg name="noise_gyro"         default="0.00002"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
     <arg name="noise_mag"          default="0.0001"/> <!-- no reference... not used in this algorithm-->
 
     <!-- IMU bias initial values. If you dont know, set zeros.-->
-    <arg name="acc_bias"           default="[0.0,0.0,0.0]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
-    <arg name="gyro_bias"          default="[0.0,0.0,0.0]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
+    <arg name="acc_bias"           default="[0.128753,0.217177,0.143889]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
+    <arg name="gyro_bias"          default="[-0.024338,0.0248388,0.0358478]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->

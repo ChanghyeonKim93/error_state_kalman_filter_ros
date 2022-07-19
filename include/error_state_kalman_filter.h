@@ -129,7 +129,9 @@ public:
             q_BI = geometry::r2q(R_BI);
             q_IB = geometry::q_conj(q_BI);
 
-            grav << 0.0, 0.0, -GRAVITY_MAGNITUDE;
+            // grav << 0.0, 0.0, -GRAVITY_MAGNITUDE; // VN100t
+            // grav << GRAVITY_MAGNITUDE,0.0,0.0; // MPU9250
+            grav  = R_IB*Vec3(0.0,0.0,GRAVITY_MAGNITUDE);
         };
 
         void setRotationFromBodyToIMU(const Mat33& R_BI_input){
@@ -138,6 +140,7 @@ public:
 
             q_BI = geometry::r2q(R_BI);
             q_IB = geometry::q_conj(q_BI);
+            grav  = R_IB*Vec3(0.0,0.0,GRAVITY_MAGNITUDE);
         };
 
         void setRotationFromBodyToIMU(const Vec4& q_BI_input){
@@ -146,6 +149,7 @@ public:
 
             R_BI = geometry::q2r(q_BI);
             R_IB = R_BI.transpose();
+            grav  = R_IB*Vec3(0.0,0.0,GRAVITY_MAGNITUDE);
         };
     };
 

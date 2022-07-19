@@ -16,7 +16,7 @@ emergency_reset_rules_(),
 isInitialized_(false)
 {
     // initialize error covariance matrix
-    P_ = CovarianceMat::Identity()*0.0005;
+    P_ = CovarianceMat::Identity()*0.005;
 
     // initialize Fi matrix
     Fi_ << O33, O33, O33, O33, 
