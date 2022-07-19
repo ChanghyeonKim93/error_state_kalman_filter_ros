@@ -1,0 +1,20 @@
+<launch>
+    <!-- topic names -->
+    <arg name="topic_imu"          default="/mpu9250/imu"/>
+    <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
+    <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
+    <arg name="topic_optitrack"    default="/optitrack/BLUEFOX_MPU9250_CHK/poseStamped"/>
+
+    <!-- topicnames of the 'nav_msgs' to be published -->
+    <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
+    <arg name="topic_nav_filtered" default="/state_estimator/filtered"/>
+
+    <node pkg="state_estimator" name="state_estimator_node" type="state_estimator_node" output="screen">
+        <param name="topic_imu"         type="string" value="$(arg topic_imu)"/>
+        <param name="topic_mag"         type="string" value="$(arg topic_mag)"/>
+        <param name="topic_optitrack"   type="string" value="$(arg topic_optitrack)"/>
+
+        <param name="topic_nav_raw"        type="string" value="$(arg topic_nav_raw)"/>
+        <param name="topic_nav_filtered"   type="string" value="$(arg topic_nav_filtered)"/>
+    </node>
+</launch>

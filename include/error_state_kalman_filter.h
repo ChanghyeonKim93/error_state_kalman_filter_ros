@@ -108,10 +108,12 @@ public:
         Vec3 grav; // gravity w.r.t. the global frame
 
         FixedParameters(){
-            R_BI << 1,0,0, 0,-1,0, 0,0,-1;
+            // R_BI << 1,0,0, 0,-1,0, 0,0,-1;
+            R_BI << 0,0,1, 0,-1,0, 1,0,0;
             R_IB = R_BI.transpose();
-            q_BI << 0,-1,0,0;
-            q_IB << 0, 1,0,0;
+
+            q_BI = geometry::r2q(R_BI);
+            q_IB = geometry::q_conj(q_BI);
 
             grav << 0.0, 0.0, -GRAVITY_MAGNITUDE;
         };
@@ -302,7 +304,8 @@ public:
         int dim;
         QMat Q;
         ProcessNoise() : 
-        sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
+        // sig_na(0.0008), sig_ng(0.000006), sig_nba(1e-12), sig_nbg(1e-12), dim(12) {
+        sig_na(0.009), sig_ng(0.00006), sig_nba(1e-9), sig_nbg(1e-9), dim(12) {
             Q = QMat::Identity();
             for(int i = 0; i < 3; ++i){
                 Q(i,i) = POW2(sig_na);
