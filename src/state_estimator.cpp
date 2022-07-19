@@ -53,11 +53,13 @@ void StateEstimator::run(){
     
     ros::Time t_prev = ros::Time::now();
     ros::Time t_curr;
+
+    double period_show = 2.0; // sec.
     while(ros::ok()){
 
         t_curr = ros::Time::now();
         
-        if( verbose_all_estimation_ && (t_curr-t_prev).toSec() >= 1.0 ) {
+        if( verbose_all_estimation_ && (t_curr-t_prev).toSec() >= period_show ) {
             filter_->showFilterStates();
             t_prev = t_curr;
         }
