@@ -48,8 +48,8 @@ StateEstimator::~StateEstimator(){
 };
 
 void StateEstimator::run(){
-    ROS_INFO_STREAM("StateEstimator - runs at [" << 1000 <<"] Hz.");
-    ros::Rate rate(1000);
+    ROS_INFO_STREAM("StateEstimator - runs at [" << 2000 <<"] Hz.");
+    ros::Rate rate(2000);
     while(ros::ok()){
         ros::spinOnce();
         rate.sleep();
@@ -160,4 +160,12 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
     nav_raw_current_.twist.twist.angular.z = imu_current_.angular_velocity.z;
 
     pub_nav_raw_.publish(nav_raw_current_);
+};
+
+void StateEstimator::getParameters(){
+    
+    if(!ros::param::has("~noise_std"))
+        throw std::runtime_error("there is no 'noise_std'. ");
+
+
 };
