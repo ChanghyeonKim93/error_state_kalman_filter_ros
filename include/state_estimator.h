@@ -33,6 +33,8 @@ private:
 	void callbackIMU(const sensor_msgs::ImuConstPtr& msg);
 	void callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg);
 
+    void getParameters();
+
     void run();
 
 public:
@@ -68,5 +70,17 @@ private:
 // Filter
 private:   
     std::unique_ptr<FilterType> filter_;
+    
+    double acc_bias_[3];
+    double gyro_bias_[3];
+    double mag_bias_[3];
+
+    double noise_std_acc_;
+    double noise_std_gyro_;
+    double noise_std_mag_;
+
+    double noise_measurement_;
+
+    
 };
 #endif
