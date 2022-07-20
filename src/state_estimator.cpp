@@ -112,7 +112,7 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
 
         // Velocities
         X_nom.v = filter_->getFixedParameters().R_BI*X_nom.v;
-        nav_filtered_current_.twist.twist.linear.x = X_nom.v(0); // body
+        nav_filtered_current_.twist.twist.linear.x = X_nom.v(0); // global
         nav_filtered_current_.twist.twist.linear.y = X_nom.v(1);
         nav_filtered_current_.twist.twist.linear.z = X_nom.v(2);
 
@@ -120,9 +120,9 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
         wm << imu_current_.angular_velocity.x, imu_current_.angular_velocity.y, imu_current_.angular_velocity.z;
         wm = wm - X_nom.bg;
         wm = filter_->getFixedParameters().R_BI*wm; // body
-        nav_filtered_current_.twist.twist.angular.x = imu_current_.angular_velocity.x;
-        nav_filtered_current_.twist.twist.angular.y = imu_current_.angular_velocity.y;
-        nav_filtered_current_.twist.twist.angular.z = imu_current_.angular_velocity.z;
+        nav_filtered_current_.twist.twist.angular.x = wm(0);
+        nav_filtered_current_.twist.twist.angular.y = wm(1);
+        nav_filtered_current_.twist.twist.angular.z = wm(2);
 
         // Publish filtered states
         pub_nav_filtered_.publish(nav_filtered_current_);
