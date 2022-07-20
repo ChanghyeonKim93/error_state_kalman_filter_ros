@@ -31,7 +31,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
                      gyro_bias_[0], gyro_bias_[1], gyro_bias_[2], 
                      mag_bias_[0], mag_bias_[1], mag_bias_[2]);
     filter_->setIMUNoise(noise_std_acc_, noise_std_gyro_, noise_std_mag_);
-
+    filter_->setObservationNoise(noise_optitrack_position_, noise_optitrack_orientation_);
+    
     Eigen::Matrix3d R_BI;
     R_BI << R_BI_vec_[0],R_BI_vec_[1], R_BI_vec_[2],
             R_BI_vec_[3],R_BI_vec_[4], R_BI_vec_[5],
@@ -212,12 +213,18 @@ void StateEstimator::getParameters(){
     if(!ros::param::has("~mag_bias"))
         throw std::runtime_error("there is no 'mag_bias'. ");
 
+    if(!ros::param::has("~noise_optitrack_position"))
+        throw std::runtime_error("there is no 'noise_optitrack_position'.");
+    if(!ros::param::has("~noise_optitrack_orientation"))
+        throw std::runtime_error("there is no 'noise_optitrack_orientation'.");
+
     if(!ros::param::has("~R_BI"))
         throw std::runtime_error("there is no 'R_BI'. ");
 
     nh_.param("acc_bias",  acc_bias_,  std::vector<double>());
     nh_.param("gyro_bias", gyro_bias_, std::vector<double>());
     nh_.param("mag_bias",  mag_bias_,  std::vector<double>());
+    
 
     nh_.param("R_BI",  R_BI_vec_,  std::vector<double>());
 
@@ -234,5 +241,7 @@ void StateEstimator::getParameters(){
     ros::param::get("~noise_accel", noise_std_acc_);
     ros::param::get("~noise_gyro",  noise_std_gyro_);
     ros::param::get("~noise_mag",   noise_std_mag_);
-    
+
+    ros::param::get("~noise_optitrack_position",    noise_optitrack_position_);
+    ros::param::get("~noise_optitrack_orientation", noise_optitrack_orientation_);
 };

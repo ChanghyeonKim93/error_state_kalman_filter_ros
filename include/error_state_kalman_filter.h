@@ -80,6 +80,7 @@ public:
 
     void setIMUNoise(double noise_acc, double noise_gyro, double noise_mag);
 
+    void setObservationNoise(double noise_position, double noise_orientation);
 
 public:
     bool isInitialized();
@@ -384,6 +385,21 @@ public:
         int dim;
         RMat R; 
         MeasurementNoise() : sig_p(0.005), sig_q(0.01), dim(7) { 
+            R = RMat::Identity();
+            for(int i = 0; i < 3; ++i) R(i,i) = POW2(sig_p);
+            for(int i = 0; i < 4; ++i) R(3+i,3+i) = POW2(sig_q);
+        };
+
+        void setNoise(double noise_position, double noise_orientation){
+            if(noise_position <= 0.0000001) 
+                throw std::runtime_error("noise_position should be larger then 0.0000001.");
+                
+            if(noise_orientation <= 0.0000001) 
+                throw std::runtime_error("noise_orientation should be larger then 0.0000001.");
+            
+            sig_p = noise_position;
+            sig_q = noise_orientation;
+
             R = RMat::Identity();
             for(int i = 0; i < 3; ++i) R(i,i) = POW2(sig_p);
             for(int i = 0; i < 4; ++i) R(3+i,3+i) = POW2(sig_q);

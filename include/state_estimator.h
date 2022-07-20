@@ -79,7 +79,8 @@ private:
     double noise_std_gyro_;
     double noise_std_mag_;
 
-    double noise_measurement_;
+    double noise_optitrack_position_;
+    double noise_optitrack_orientation_;
 
     std::vector<double> R_BI_vec_;
 

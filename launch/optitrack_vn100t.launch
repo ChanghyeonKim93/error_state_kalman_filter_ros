@@ -22,6 +22,10 @@
     <arg name="gyro_bias"          default="[0.00435,-0.0011758,-0.011671]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
+    <!-- Optitrack measurement covariance -->
+    <arg name="noise_optitrack_position"    default="0.01"/>
+    <arg name="noise_optitrack_orientation" default="0.001"/>
+
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
     <arg name="R_BI" default="[1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]"/> 
     <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
@@ -44,6 +48,9 @@
         <rosparam param="acc_bias"  subst_value="True"> $(arg acc_bias)  </rosparam>
         <rosparam param="gyro_bias" subst_value="True"> $(arg gyro_bias) </rosparam>
         <rosparam param="mag_bias"  subst_value="True"> $(arg mag_bias)  </rosparam>
+
+        <param name="noise_optitrack_position"     type="double" value="$(arg noise_optitrack_position)"/>
+        <param name="noise_optitrack_orientation"  type="double" value="$(arg noise_optitrack_orientation)"/>
 
         <rosparam param="R_BI"  subst_value="True"> $(arg R_BI)  </rosparam>
         
