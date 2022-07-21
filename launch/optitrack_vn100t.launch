@@ -11,6 +11,7 @@
 
     <!-- Verbose all estimation states at every second -->
     <arg name="verbose_all_estimation" default="true"/>
+    <arg name="flag_visualizer_on"     default="false"/>
 
     <!-- IMU noise parameters -->
     <arg name="noise_accel"        default="0.008"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
@@ -53,6 +54,14 @@
         <param name="noise_optitrack_orientation"  type="double" value="$(arg noise_optitrack_orientation)"/>
 
         <rosparam param="R_BI"  subst_value="True"> $(arg R_BI)  </rosparam>
-        
     </node>
+
+    <group if="$(eval arg('flag_visualizer_on') ==true)">
+        <node pkg="rviz" name="state_estimator_rviz" type="rviz" args="-d $(find state_estimator)/state_estimator.rviz"/>
+
+        <node pkg="rqt_multiplot" name="state_estimator_multiplot" type="rqt_multiplot" output="screen">
+            <param name="multiplot-config" type="string" value="$(find state_estimator)/state_estimator_plot.xml"/>
+        </node>
+    </group>
+
 </launch>
