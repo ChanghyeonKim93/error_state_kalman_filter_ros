@@ -1,5 +1,5 @@
 # state_estimator_optitrack_imu
-This package is an 'Error State Kalman Filter(ESKF)-based state estimator'. 
+This package is an '**Error State Kalman Filter (ESKF)**-based state estimator'. 
 
 It integrates:
 
