@@ -1,4 +1,5 @@
-# state_estimator_optitrack_imu
+# State Estimator (Fusing Mocap System and IMU)
+
 This package is an '**Error State Kalman Filter (ESKF)**-based state estimator'. 
 
 It integrates:
@@ -56,7 +57,7 @@ If you don't know the IMU acc. & gyro. bias values, just set (0,0,0). Note that 
 - `topic_optitrack`: your Motion Capture System topic name to subscribe. (message type: **geometry_msgs::PoseStamped**) 
 
 - `topic_nav_raw`: motion capture data name converted to the nav_msgs::Odometry to rviz visualization. (message type: **nav_msgs::Odometry**) 
-- `topic_nav_raw`: estimation result topic name to publish. (message type: **nav_msgs::Odometry**) 
+- `topic_nav_filtered`: estimation result topic name to publish. (message type: **nav_msgs::Odometry**) 
 
 - `noise_accel`: IMU accelerometer noise
 - `noise_gyro`: IMU gyroscope noise
