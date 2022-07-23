@@ -72,6 +72,17 @@ void StateEstimator::run(){
 
 
 void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
+
+    static uint32_t n_imu_data = 0;
+
+    // ++n_imu_data;
+    // if(n_imu_data < 8 ) {
+    //     return;
+    // }
+    // else{
+    //     n_imu_data = 0;
+    // }
+
     imu_current_ = *msg;
     double t_now = imu_current_.header.stamp.toSec();
 
@@ -139,6 +150,16 @@ void StateEstimator::callbackMag(const sensor_msgs::MagneticFieldConstPtr& msg){
 };
 
 void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr& msg){
+    static uint32_t n_optitrack_data = 0;
+    
+    // ++n_optitrack_data;
+    // if(n_optitrack_data < 5 ) {
+    //     return;
+    // }
+    // else{
+    //     n_optitrack_data = 0;
+    // }
+
     optitrack_current_ = *msg;
     double t_now = optitrack_current_.header.stamp.toSec();
 

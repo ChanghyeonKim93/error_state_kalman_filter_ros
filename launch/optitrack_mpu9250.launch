@@ -11,7 +11,7 @@
 
     <!-- Verbose all estimation states at every second -->
     <arg name="verbose_all_estimation" default="true"/>
-    <arg name="flag_visualizer_on"     default="false"/>
+    <arg name="flag_visualizer_on"     default="true"/>
 
     <!-- IMU noise parameters -->
     <arg name="noise_accel"        default="0.004"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
