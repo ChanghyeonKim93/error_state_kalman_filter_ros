@@ -84,7 +84,9 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     // }
 
     imu_current_ = *msg;
-    double t_now = imu_current_.header.stamp.toSec();
+    // double t_now = imu_current_.header.stamp.toSec();
+    double t_now = ros::Time::now().toSec();
+
 
     Vec3 am;
     Vec3 wm;
@@ -161,7 +163,8 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
     // }
 
     optitrack_current_ = *msg;
-    double t_now = optitrack_current_.header.stamp.toSec();
+    // double t_now = optitrack_current_.header.stamp.toSec();
+    double t_now = ros::Time::now().toSec();
 
     Vec3 p_observe;
     Vec4 q_observe;
