@@ -13,8 +13,7 @@ ESKF::ESKF()
 : measurement_noise_(), process_noise_(), 
 X_nom_(), dX_(),
 emergency_reset_rules_(),  
-isInitialized_(false)
-{
+isInitialized_(false){
     // initialize error covariance matrix
     P_ = CovarianceMat::Identity()*0.005;
 
@@ -31,11 +30,15 @@ isInitialized_(false)
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
 
+    lpf_gyro_ = new LowPassFilter<Vec3>(500.0, 100.0);
+    lpf_acc_  = new LowPassFilter<Vec3>(500.0, 100.0);
+
     std::cout << "Error State Kalman Filter - constructed\n";
 };
 
 ESKF::~ESKF(){
     std::cout << "Error State Kalman Filter - destructed\n";
+    delete lpf_gyro_;
 };
 
 
@@ -116,6 +119,10 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
 #ifdef VERBOSE_STATE
     std::cout << "Predict...\n";
 #endif
+
+    // Low Pass Filtering
+    lpf_gyro_->doFilterAndGetEstimation(wm,t_now);
+    lpf_acc_->doFilterAndGetEstimation(am,t_now);
 
     double dt = t_now - t_prev_;
     if(dt > 0.05) {
@@ -242,6 +249,14 @@ void ESKF::getFilteredStates(NominalState& X_nom_filtered) {
     this->X_nom_.copyTo(X_nom_filtered);
 };
 
+
+void ESKF::getGyroLowPassFiltered(Vec3& filtered_gyro){
+    filtered_gyro = this->lpf_gyro_->getFilteredValue();
+};
+void ESKF::getAccLowPassFiltered(Vec3& filtered_acc){
+    filtered_acc = this->lpf_acc_->getFilteredValue();
+};
+    
 void ESKF::showFilterStates(){
     std::cout << "---- Current estimation ----\n";
     std::cout << "p: " << X_nom_.p.transpose() << " m \n";

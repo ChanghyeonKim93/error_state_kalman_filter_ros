@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 
 #include "geometry_library.h"
+#include "low_pass_filter.h"
 
 // #define VERBOSE_STATE
 
@@ -53,6 +54,7 @@ public:
 
     struct EmergencyResetRules;
 
+
 private:
     // Related to Kalman filter implementation .
     void predictNominal(const NominalState& X_nom, const Vec3& am, const Vec3& wm, double dt,
@@ -93,6 +95,8 @@ public:
 
     FixedParameters getFixedParameters();
     void getFilteredStates(NominalState& x_nom_filtered);
+    void getGyroLowPassFiltered(Vec3& filtered_gyro);
+    void getAccLowPassFiltered(Vec3& filtered_acc);
     void getCovariance(NominalState& x_nom_filtered);
 
     void showFilterStates();
@@ -478,6 +482,10 @@ private:
 
     bool isInitialized_;
 
+
+    // LPF for angular rate 
+    LowPassFilter<Vec3>* lpf_gyro_;
+    LowPassFilter<Vec3>* lpf_acc_;
 
 public:
 
