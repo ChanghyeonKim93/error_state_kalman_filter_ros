@@ -22,6 +22,16 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
         (topicname_nav_raw_, 1);
     pub_nav_filtered_ = nh_.advertise<nav_msgs::Odometry>
         (topicname_nav_filtered_, 1);
+    pub_nav_filtered_lpf_ = nh_.advertise<nav_msgs::Odometry>
+        (topicname_nav_filtered_lpf_, 1);
+
+
+    topicname_imu_dt_ = "/imu_dt";
+    topicname_optitrack_dt_ = "/optitrack_dt";
+    pub_imu_dt_ = nh_.advertise<std_msgs::Time>
+        (topicname_imu_dt_, 1);
+    pub_optitrack_dt_ = nh_.advertise<std_msgs::Time>
+        (topicname_optitrack_dt_, 1);
         
     // Filter generation
     filter_ = std::make_unique<FilterType>();
@@ -40,6 +50,9 @@ StateEstimator::StateEstimator(ros::NodeHandle& nh)
 
     filter_->setRotationFromBodyToIMU(R_BI);
 
+    timestamp_last_optitrack_ = 0.0f;
+    timestamp_last_imu_ = 0.0f;
+
     // run
     this->run();
 };
@@ -55,7 +68,7 @@ void StateEstimator::run(){
     ros::Time t_prev = ros::Time::now();
     ros::Time t_curr;
 
-    double period_show = 2.0; // sec.
+    double period_show = 1.0; // sec.
     while(ros::ok()){
 
         t_curr = ros::Time::now();
@@ -87,7 +100,11 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
     // double t_now = imu_current_.header.stamp.toSec();
     double t_now = ros::Time::now().toSec();
 
-
+    std_msgs::Time msg_time;
+    msg_time.data = ros::Time(t_now-timestamp_last_imu_);
+    pub_imu_dt_.publish(msg_time);
+    timestamp_last_imu_ = t_now;
+    
     Vec3 am;
     Vec3 wm;
     am << imu_current_.linear_acceleration.x, imu_current_.linear_acceleration.y, imu_current_.linear_acceleration.z;
@@ -140,6 +157,18 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
 
         // Publish filtered states
         pub_nav_filtered_.publish(nav_filtered_current_);
+
+        // filtered data with LPF acc. and gyro.
+        Vec3 w_lpf; 
+        nav_filtered_current_lpf_ = nav_filtered_current_;
+        filter_->getGyroLowPassFiltered(w_lpf);
+        w_lpf -= X_nom.bg;
+        w_lpf = filter_->getFixedParameters().R_BI*w_lpf; // body
+        nav_filtered_current_lpf_.twist.twist.angular.x = w_lpf(0);
+        nav_filtered_current_lpf_.twist.twist.angular.y = w_lpf(1);
+        nav_filtered_current_lpf_.twist.twist.angular.z = w_lpf(2);
+
+        pub_nav_filtered_lpf_.publish(nav_filtered_current_lpf_);
     }
 };
 
@@ -163,8 +192,17 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
     // }
 
     optitrack_current_ = *msg;
-    // double t_now = optitrack_current_.header.stamp.toSec();
     double t_now = ros::Time::now().toSec();
+    
+    std_msgs::Time msg_time;
+    msg_time.data = ros::Time(t_now-timestamp_last_optitrack_);
+    pub_optitrack_dt_.publish(msg_time);
+
+    if(t_now-timestamp_last_optitrack_ < 0.005) {
+        timestamp_last_optitrack_ = t_now;
+        return;
+    }
+    timestamp_last_optitrack_ = t_now;
 
     Vec3 p_observe;
     Vec4 q_observe;
@@ -215,7 +253,8 @@ void StateEstimator::getParameters(){
     
     if(!ros::param::has("~topic_nav_filtered")) throw std::runtime_error("StateEstimator - no 'topic_nav_filtered' is set. terminate program.\n");
     ros::param::get("~topic_nav_filtered", topicname_nav_filtered_);
-    
+    topicname_nav_filtered_lpf_ = topicname_nav_filtered_ + "/lpf";
+
     if(!ros::param::has("~topic_nav_raw")) throw std::runtime_error("StateEstimator - no 'topic_nav_raw' is set. terminate program.\n");
     ros::param::get("~topic_nav_raw", topicname_nav_raw_);
 

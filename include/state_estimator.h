@@ -12,6 +12,7 @@
 #include <sensor_msgs/Imu.h> // Imu (acc & gyro)
 #include <sensor_msgs/MagneticField.h> // Imu magnetometer
 #include <geometry_msgs/PoseStamped.h> // optitrack
+#include <std_msgs/Time.h>
 
 // Publishing messages
 #include <nav_msgs/Odometry.h>
@@ -60,12 +61,25 @@ private:
     // publishers
     std::string topicname_nav_raw_;
     std::string topicname_nav_filtered_;
+    std::string topicname_nav_filtered_lpf_;
 
     ros::Publisher pub_nav_raw_;
     ros::Publisher pub_nav_filtered_;
+    ros::Publisher pub_nav_filtered_lpf_;
     
     nav_msgs::Odometry nav_raw_current_;
     nav_msgs::Odometry nav_filtered_current_;
+    nav_msgs::Odometry nav_filtered_current_lpf_;
+
+
+    std::string topicname_imu_dt_;
+    std::string topicname_optitrack_dt_;
+
+    ros::Publisher pub_imu_dt_;
+    ros::Publisher pub_optitrack_dt_;
+
+    std_msgs::Time msg_imu_dt_;
+    std_msgs::Time msg_optitrack_dt_;
 
 // Filter
 private:   
@@ -86,6 +100,9 @@ private:
 
     bool verbose_all_estimation_;
 
+
+    double timestamp_last_optitrack_;
+    double timestamp_last_imu_;
     
 };
 #endif

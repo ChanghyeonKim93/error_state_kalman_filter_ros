@@ -37,19 +37,20 @@ public:
         tau_taudt_ = tau_/(tau_+dt_);
         dt_taudt_  = dt_/(tau_+dt_);
 
+        // y_n = tau/(tau+dt) * y_(n-1) + dt/(tau+dt)*x_n
+
         std::cout << "cutoff frequency of LPF:"<< f_cut_ << " Hz" << std::endl;
         std::cout << "tau_taudt_:"<< tau_taudt_ << std::endl;
         std::cout << "dt_taudt_:"<< dt_taudt_ << std::endl;
-
     };
 
     T doFilterAndGetEstimation(const T& data_curr, double timestamp_curr){
         if(is_initialized_){
             double time_elapsed = timestamp_curr - timestamp_prev_;
-            if(time_elapsed >= 0.01 ){ // millisecond
+            if(time_elapsed >= 0.03 ){ // millisecond
                 // too long time elapsed... re-intialization the filter
-                data_prev_ = data_curr;
-                data_filtered_ = data_prev_;
+                data_prev_     = data_curr;
+                data_filtered_ = data_curr;
             }
             else{
                 // Do filtering
@@ -59,16 +60,16 @@ public:
 
             if(time_elapsed < 0){
                 //시간,... 역행...?
+                data_prev_     = data_curr;
                 data_filtered_ = data_curr;
-                data_prev_ = data_curr;
             }
         }
         else{
             is_initialized_ = true;
             timestamp_prev_ = timestamp_curr;
-            data_prev_ = data_curr;
+            data_prev_      = data_curr;
 
-            data_filtered_ = data_prev_;
+            data_filtered_  = data_curr;
         }
 
         return data_filtered_;

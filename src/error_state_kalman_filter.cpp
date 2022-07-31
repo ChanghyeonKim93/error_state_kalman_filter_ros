@@ -30,9 +30,10 @@ isInitialized_(false){
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
 
-    double cutoff_frequency = 50.0; // Hz
-    lpf_gyro_ = new LowPassFilter<Vec3>(100.0, 50.0);
-    lpf_acc_  = new LowPassFilter<Vec3>(100.0, 50.0);
+    double cutoff_frequency = 10.0; // Hz
+    double sampling_rate = 100.0;
+    lpf_gyro_ = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
+    lpf_acc_  = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
 
     std::cout << "Error State Kalman Filter - constructed\n";
 };
