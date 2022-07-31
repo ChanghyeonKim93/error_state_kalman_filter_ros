@@ -10,12 +10,12 @@ typedef Matrix<double,3,1> Vec3;
 template <typename T>
 class LowPassFilter{
 private:
-    double cutoff_freq_; // Hz
+    double f_cut_; // Hz
+    double w_cut_; // rad/s
     double dt_; // data sampling rate. (tentative value is OK.)
-    double alpha_; 
-    double RC_;
-    double dt_inv_RC_plus_dt_;
-    double RC_inv_RC_plus_dt_;
+    double tau_; // time constant 
+    double tau_taudt_;
+    double dt_taudt_;
 
     T data_prev_;
     T data_filtered_;
@@ -28,13 +28,19 @@ public:
     LowPassFilter(double cutoff_freq, double sampling_rate)
     {
         is_initialized_ = false;
-        cutoff_freq_ = cutoff_freq;
+        f_cut_ = cutoff_freq;
         dt_ = 1.0/sampling_rate;
 
-        alpha_ = 1.0 + 1.0/(cutoff_freq_*2.0*3.141592*dt_);
-        RC_ = dt_*(1-alpha_)/alpha_;
-        dt_inv_RC_plus_dt_ = dt_/(RC_+dt_);
-        RC_inv_RC_plus_dt_ = RC_/(RC_+dt_);
+        w_cut_ = f_cut_*2.0*3.141592;
+        tau_ = 1.0/w_cut_;
+
+        tau_taudt_ = tau_/(tau_+dt_);
+        dt_taudt_  = dt_/(tau_+dt_);
+
+        std::cout << "cutoff frequency of LPF:"<< f_cut_ << " Hz" << std::endl;
+        std::cout << "tau_taudt_:"<< tau_taudt_ << std::endl;
+        std::cout << "dt_taudt_:"<< dt_taudt_ << std::endl;
+
     };
 
     T doFilterAndGetEstimation(const T& data_curr, double timestamp_curr){
@@ -47,7 +53,7 @@ public:
             }
             else{
                 // Do filtering
-                data_filtered_ = dt_inv_RC_plus_dt_*data_curr + RC_inv_RC_plus_dt_*data_prev_;
+                data_filtered_ = dt_taudt_*data_curr + tau_taudt_*data_prev_;
                 data_prev_ = data_curr;
             }
 
