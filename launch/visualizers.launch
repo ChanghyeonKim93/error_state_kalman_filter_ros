@@ -1,0 +1,7 @@
+<launch>    
+    <node pkg="rviz" name="state_estimator_rviz" type="rviz" args="-d $(find state_estimator)/state_estimator.rviz"/>
+
+    <node pkg="rqt_multiplot" name="state_estimator_multiplot" type="rqt_multiplot" output="screen">
+        <param name="multiplot-config" type="string" value="$(find state_estimator)/state_estimator_plot.xml"/>
+    </node>
+</launch>

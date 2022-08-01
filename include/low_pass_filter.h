@@ -49,29 +49,27 @@ public:
             double time_elapsed = timestamp_curr - timestamp_prev_;
             if(time_elapsed >= 0.03 ){ // millisecond
                 // too long time elapsed... re-intialization the filter
-                data_prev_     = data_curr;
                 data_filtered_ = data_curr;
             }
             else{
                 // Do filtering
-                data_filtered_ = dt_taudt_*data_curr + tau_taudt_*data_prev_;
-                data_prev_ = data_curr;
+                data_filtered_ = dt_taudt_*data_curr + tau_taudt_*data_filtered_;
+                // data_filtered_ = data_curr;
             }
 
             if(time_elapsed < 0){
                 //시간,... 역행...?
-                data_prev_     = data_curr;
                 data_filtered_ = data_curr;
             }
         }
         else{
             is_initialized_ = true;
-            timestamp_prev_ = timestamp_curr;
-            data_prev_      = data_curr;
 
             data_filtered_  = data_curr;
         }
 
+        timestamp_prev_ = timestamp_curr;
+        data_prev_      = data_curr;
         return data_filtered_;
     };
 

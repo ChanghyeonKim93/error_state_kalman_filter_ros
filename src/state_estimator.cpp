@@ -62,8 +62,9 @@ StateEstimator::~StateEstimator(){
 };
 
 void StateEstimator::run(){
-    ROS_INFO_STREAM("StateEstimator - runs at [" << 2000 <<"] Hz.");
-    ros::Rate rate(2000);
+    double node_rate = 5000.0;
+    ROS_INFO_STREAM("StateEstimator - runs at [" << node_rate <<"] Hz.");
+    ros::Rate rate(node_rate);
     
     ros::Time t_prev = ros::Time::now();
     ros::Time t_curr;
@@ -162,7 +163,7 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
         Vec3 w_lpf; 
         nav_filtered_current_lpf_ = nav_filtered_current_;
         filter_->getGyroLowPassFiltered(w_lpf);
-        w_lpf -= X_nom.bg;
+        w_lpf = w_lpf - X_nom.bg;
         w_lpf = filter_->getFixedParameters().R_BI*w_lpf; // body
         nav_filtered_current_lpf_.twist.twist.angular.x = w_lpf(0);
         nav_filtered_current_lpf_.twist.twist.angular.y = w_lpf(1);

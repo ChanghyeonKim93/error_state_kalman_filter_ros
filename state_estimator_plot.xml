@@ -203,7 +203,7 @@
                             <axes>
                                 <x_axis>
                                     <field>header/stamp</field>
-                                    <field_type>0</field_type>
+                                    <field_type>1</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
                                         <absolute_minimum>0</absolute_minimum>
@@ -709,8 +709,8 @@
                         <curve_0>
                             <axes>
                                 <x_axis>
-                                    <field></field>
-                                    <field_type>1</field_type>
+                                    <field>header/stamp</field>
+                                    <field_type>0</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
                                         <absolute_minimum>0</absolute_minimum>
@@ -747,21 +747,21 @@
                             <style>
                                 <lines_interpolate>false</lines_interpolate>
                                 <pen_style>1</pen_style>
-                                <pen_width>2</pen_width>
+                                <pen_width>1</pen_width>
                                 <render_antialias>false</render_antialias>
                                 <steps_invert>false</steps_invert>
                                 <sticks_baseline>0</sticks_baseline>
                                 <sticks_orientation>2</sticks_orientation>
                                 <type>0</type>
                             </style>
-                            <subscriber_queue_size>100</subscriber_queue_size>
+                            <subscriber_queue_size>1</subscriber_queue_size>
                             <title>wx (LPF)</title>
                         </curve_0>
                         <curve_1>
                             <axes>
                                 <x_axis>
-                                    <field></field>
-                                    <field_type>1</field_type>
+                                    <field>header/stamp</field>
+                                    <field_type>0</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
                                         <absolute_minimum>0</absolute_minimum>
@@ -798,21 +798,21 @@
                             <style>
                                 <lines_interpolate>false</lines_interpolate>
                                 <pen_style>1</pen_style>
-                                <pen_width>2</pen_width>
+                                <pen_width>1</pen_width>
                                 <render_antialias>false</render_antialias>
                                 <steps_invert>false</steps_invert>
                                 <sticks_baseline>0</sticks_baseline>
                                 <sticks_orientation>2</sticks_orientation>
                                 <type>0</type>
                             </style>
-                            <subscriber_queue_size>100</subscriber_queue_size>
+                            <subscriber_queue_size>1</subscriber_queue_size>
                             <title>wy (LPF)</title>
                         </curve_1>
                         <curve_2>
                             <axes>
                                 <x_axis>
-                                    <field></field>
-                                    <field_type>1</field_type>
+                                    <field>header/stamp</field>
+                                    <field_type>0</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
                                         <absolute_minimum>0</absolute_minimum>
@@ -849,21 +849,21 @@
                             <style>
                                 <lines_interpolate>false</lines_interpolate>
                                 <pen_style>1</pen_style>
-                                <pen_width>2</pen_width>
+                                <pen_width>1</pen_width>
                                 <render_antialias>false</render_antialias>
                                 <steps_invert>false</steps_invert>
                                 <sticks_baseline>0</sticks_baseline>
                                 <sticks_orientation>2</sticks_orientation>
                                 <type>0</type>
                             </style>
-                            <subscriber_queue_size>100</subscriber_queue_size>
+                            <subscriber_queue_size>1</subscriber_queue_size>
                             <title>wz (LPF)</title>
                         </curve_2>
                     </curves>
                     <legend>
                         <visible>true</visible>
                     </legend>
-                    <plot_rate>500</plot_rate>
+                    <plot_rate>400</plot_rate>
                     <title>Angular velocity (LPF)</title>
                 </column_1>
             </row_1>
@@ -977,8 +977,8 @@
                                     <field>data</field>
                                     <field_type>0</field_type>
                                     <scale>
-                                        <absolute_maximum>0.02</absolute_maximum>
-                                        <absolute_minimum>-0.01</absolute_minimum>
+                                        <absolute_maximum>0.005</absolute_maximum>
+                                        <absolute_minimum>0</absolute_minimum>
                                         <relative_maximum>0</relative_maximum>
                                         <relative_minimum>-1000</relative_minimum>
                                         <type>1</type>

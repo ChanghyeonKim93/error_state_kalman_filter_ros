@@ -30,7 +30,7 @@ isInitialized_(false){
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
 
-    double cutoff_frequency = 10.0; // Hz
+    double cutoff_frequency = 5.0; // Hz
     double sampling_rate = 100.0;
     lpf_gyro_ = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
     lpf_acc_  = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
@@ -123,8 +123,8 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
 #endif
 
     // Low Pass Filtering
-    lpf_gyro_->doFilterAndGetEstimation(wm,t_now);
-    lpf_acc_->doFilterAndGetEstimation(am,t_now);
+    lpf_gyro_->doFilterAndGetEstimation(wm, t_now);
+    lpf_acc_->doFilterAndGetEstimation(am, t_now);
 
     double dt = t_now - t_prev_;
     if(dt > 0.05) {
@@ -193,7 +193,7 @@ void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double 
         t_prev_ = t_now;
         t_init_ = t_now;
 
-        std::cout << "FILTER INITIALIZED. time: " << t_now-t_init_;
+        std::cout << "FILTER INITIALIZED. time: " << t_now - t_init_;
         X_nom_.show();
         std::cout << std::endl;
         return;
