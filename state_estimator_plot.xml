@@ -203,7 +203,7 @@
                             <axes>
                                 <x_axis>
                                     <field>header/stamp</field>
-                                    <field_type>1</field_type>
+                                    <field_type>0</field_type>
                                     <scale>
                                         <absolute_maximum>1000</absolute_maximum>
                                         <absolute_minimum>0</absolute_minimum>
