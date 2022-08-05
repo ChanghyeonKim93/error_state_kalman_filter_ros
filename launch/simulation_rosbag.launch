@@ -1,9 +1,10 @@
 <launch>
     <!-- topic names -->
     <arg name="topic_imu"          default="/mpu9250/imu"/>
+    <!-- <arg name="topic_imu"          default="/lord_3dm_gx3_25/imu"/> -->
     <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
     <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
-    <arg name="topic_optitrack"    default="/optitrack/BLUEFOX_MPU9250_CHK/poseStamped"/>
+    <arg name="topic_optitrack"    default="/optitrack/CHK_IMU/poseStamped"/>
 
     <!-- topicnames of the 'nav_msgs' to be published -->
     <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
@@ -24,11 +25,12 @@
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
     <!-- Optitrack measurement covariance -->
-    <arg name="noise_optitrack_position"    default="0.015"/>
-    <arg name="noise_optitrack_orientation" default="0.01"/>
+    <arg name="noise_optitrack_position"    default="0.1"/>
+    <arg name="noise_optitrack_orientation" default="0.1"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
-    <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/> 
+    <!-- <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/>  -->
+    <arg name="R_BI" default="[-1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0]"/> 
     <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
     <!-- MPU9250 with CHK camera: [0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]-->
 

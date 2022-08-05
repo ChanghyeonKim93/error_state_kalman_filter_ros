@@ -265,11 +265,11 @@ void ESKF::updateGravity(const Vec3& am, double t_now){
         Matrix3d R_B0Ik = geometry::q2r(X_nom_.q);
         Vec3 grav_Ik_est = R_B0Ik.transpose()*fixed_param_.R_IB*fixed_param_.grav;
         
-        std::cout << "norm grav Ik est  : " << grav_Ik_est.norm() <<"\n";
-        std::cout << "norm grav Ik meas : " << grav_Ik_measure.norm() <<"\n";
+        // std::cout << "norm grav Ik est  : " << grav_Ik_est.norm() <<"\n";
+        // std::cout << "norm grav Ik meas : " << grav_Ik_measure.norm() <<"\n";
 
-        std::cout << " grav IK meausre: " << grav_Ik_measure.transpose() << std::endl;
-        std::cout << " grav IK est    : " << grav_Ik_est.transpose() << std::endl;
+        // std::cout << " grav IK meausre: " << grav_Ik_measure.transpose() << std::endl;
+        // std::cout << " grav IK est    : " << grav_Ik_est.transpose() << std::endl;
 
     }
     

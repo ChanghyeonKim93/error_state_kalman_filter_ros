@@ -187,7 +187,7 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
     static uint32_t n_optitrack_data = 0;
     
     // ++n_optitrack_data;
-    // if(n_optitrack_data < 5 ) {
+    // if(n_optitrack_data < 10 ) {
     //     return;
     // }
     // else{
