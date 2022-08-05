@@ -113,6 +113,8 @@ void StateEstimator::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
 
     if( filter_->isInitialized() ){
 
+        filter_->updateGravity(am,t_now);
+
         // Predict filter
         timer::tic();
         filter_->predict(am, wm, t_now);
@@ -207,8 +209,14 @@ void StateEstimator::callbackOptitrack(const geometry_msgs::PoseStampedConstPtr&
 
     Vec3 p_observe;
     Vec4 q_observe;
-    p_observe << optitrack_current_.pose.position.x, optitrack_current_.pose.position.y, optitrack_current_.pose.position.z;
-    q_observe << optitrack_current_.pose.orientation.w, optitrack_current_.pose.orientation.x, optitrack_current_.pose.orientation.y, optitrack_current_.pose.orientation.z;
+    p_observe << optitrack_current_.pose.position.x, 
+                 optitrack_current_.pose.position.y, 
+                 optitrack_current_.pose.position.z;
+    
+    q_observe << optitrack_current_.pose.orientation.w, 
+                 optitrack_current_.pose.orientation.x, 
+                 optitrack_current_.pose.orientation.y, 
+                 optitrack_current_.pose.orientation.z;
 
     // Update filter
     filter_->updateOptitrack(p_observe, q_observe, t_now);

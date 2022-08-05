@@ -10,6 +10,7 @@
 // #define VERBOSE_STATE
 
 using namespace Eigen;
+typedef Matrix<double,2,1> Vec2;
 typedef Matrix<double,3,1> Vec3;
 typedef Matrix<double,4,1> Vec4;
 typedef Matrix<double,7,1> Vec7;
@@ -90,7 +91,8 @@ public:
     void predict(const Vec3& am, const Vec3& wm, double t_now); // by imu 
     // void updateMagnetometer(const Vec3& p_observe, const Vec4& q_observe); // by magnetometer
     void updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double t_now); // by optitrack
-    
+    void updateGravity(const Vec3& am, double t_now);
+
     void resetFilter(const Vec3& p_init, const Vec4& q_init); // other states go to zeros.
 
     FixedParameters getFixedParameters();

@@ -239,6 +239,42 @@ void ESKF::updateOptitrack(const Vec3& p_observe, const Vec4& q_observe, double 
 #endif
 };
 
+void ESKF::updateGravity(const Vec3& am, double t_now){
+
+    // Do implementation
+#ifdef VERBOSE_STATE
+    std::cout << "Update...\n";
+#endif
+    double ax = am(0);
+    double ay = am(1);
+    double az = am(2);
+
+    double a_mag = am.norm();
+
+    // Vec2 rp_obs;
+    // rp_obs(0) = atan2(ay,az);
+    // rp_obs(1) = atan2(ax,sqrt(ay*ay + az*az));
+    
+    Vec3 grav_Ik_measure;
+    grav_Ik_measure << ax, ay, az;
+    // grav_Ik_measure -= X_nom_.ba;
+
+
+    if(grav_Ik_measure.norm() > 9.79 && grav_Ik_measure.norm() < 9.83){
+
+        Matrix3d R_B0Ik = geometry::q2r(X_nom_.q);
+        Vec3 grav_Ik_est = R_B0Ik.transpose()*fixed_param_.R_IB*fixed_param_.grav;
+        
+        std::cout << "norm grav Ik est  : " << grav_Ik_est.norm() <<"\n";
+        std::cout << "norm grav Ik meas : " << grav_Ik_measure.norm() <<"\n";
+
+        std::cout << " grav IK meausre: " << grav_Ik_measure.transpose() << std::endl;
+        std::cout << " grav IK est    : " << grav_Ik_est.transpose() << std::endl;
+
+    }
+    
+};
+
 void ESKF::resetFilter(const Vec3& p_init, const Vec4& q_init){
 
 };
