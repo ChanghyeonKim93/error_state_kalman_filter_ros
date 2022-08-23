@@ -1,0 +1,6 @@
+<launch>
+
+    <include file="$(find state_estimator)/launch/optitrack_3dm_gx3_25.launch"/>
+
+    <include file="$(find lord_imu_ros)/launch/imu.launch"/>
+</launch>

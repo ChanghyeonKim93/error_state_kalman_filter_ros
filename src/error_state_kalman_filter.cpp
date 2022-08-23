@@ -30,10 +30,11 @@ isInitialized_(false){
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
 
-    double cutoff_frequency = 5.0; // Hz
+    double cutoff_frequency = 40.0; // Hz, default: 5.0
+    double cutoff_frequency_acc = 40.0;
     double sampling_rate = 100.0;
     lpf_gyro_ = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
-    lpf_acc_  = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
+    lpf_acc_  = new LowPassFilter<Vec3>(cutoff_frequency_acc, sampling_rate);
 
     std::cout << "Error State Kalman Filter - constructed\n";
 };
@@ -124,7 +125,7 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
 
     // Low Pass Filtering
     lpf_gyro_->doFilterAndGetEstimation(wm, t_now);
-    lpf_acc_->doFilterAndGetEstimation(am, t_now);
+    const Vec3 am_lpf = lpf_acc_->doFilterAndGetEstimation(am, t_now);
 
     double dt = t_now - t_prev_;
     if(dt > 0.05) {
@@ -138,13 +139,13 @@ void ESKF::predict(const Vec3& am, const Vec3& wm, double t_now){
     ErrorState   dX_predict;
     
     // 1. nominal state prediction
-    predictNominal(X_nom_, am, wm, dt,
+    predictNominal(X_nom_, am_lpf, wm, dt,
         X_nom_predict);
 
     // 2. error-state prediction
     FMat F0;
     expmFMat eF0dt;
-    errorStateF(X_nom_, am, wm, 
+    errorStateF(X_nom_, am_lpf, wm, 
         F0);
     
     this->expm_FMat(F0,dt,5, 
