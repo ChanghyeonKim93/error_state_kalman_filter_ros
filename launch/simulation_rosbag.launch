@@ -4,7 +4,7 @@
     <!-- <arg name="topic_imu"          default="/lord_3dm_gx3_25/imu"/> -->
     <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
     <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
-    <arg name="topic_optitrack"    default="/optitrack/CHK_IMU/poseStamped"/>
+    <arg name="topic_optitrack"    default="/optitrack/dj_tilt/poseStamped"/>
 
     <!-- topicnames of the 'nav_msgs' to be published -->
     <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
@@ -12,25 +12,26 @@
 
     <!-- Verbose all estimation states at every second -->
     <arg name="verbose_all_estimation" default="true"/>
-    <arg name="flag_visualizer_on"     default="false"/>
+    <arg name="flag_visualizer_on"     default="true"/>
 
     <!-- IMU noise parameters -->
-    <arg name="noise_accel"        default="0.001"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
-    <arg name="noise_gyro"         default="0.00002"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
+    <arg name="noise_accel"        default="0.005"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
+    <arg name="noise_gyro"         default="0.001"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
     <arg name="noise_mag"          default="0.0001"/> <!-- no reference... not used in this algorithm-->
 
     <!-- IMU bias initial values. If you dont know, set zeros.-->
-    <arg name="acc_bias"           default="[-0.064,-0.20,0.54]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
-    <arg name="gyro_bias"          default="[-0.024338,0.025,0.035]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
+    <arg name="acc_bias"           default="[-0.34,-0.10,0.40]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
+    <arg name="gyro_bias"          default="[-0.0173715,0.0554399,0.0255385]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
     <!-- Optitrack measurement covariance -->
-    <arg name="noise_optitrack_position"    default="0.02"/>
-    <arg name="noise_optitrack_orientation" default="0.02"/>
+    <arg name="noise_optitrack_position"    default="0.01"/>
+    <arg name="noise_optitrack_orientation" default="0.01"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
     <!-- <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/>  -->
-    <arg name="R_BI" default="[-1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0]"/> 
+    <!-- <arg name="R_BI" default="[-1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0]"/>  -->
+    <arg name="R_BI" default="[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]"/> 
     <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
     <!-- MPU9250 with CHK camera: [0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]-->
 
