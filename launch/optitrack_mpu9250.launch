@@ -3,14 +3,14 @@
     <arg name="topic_imu"          default="/mpu9250/imu"/>
     <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
     <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
-    <arg name="topic_optitrack"    default="/optitrack/BLUEFOX_MPU9250_CHK/poseStamped"/>
+    <arg name="topic_optitrack"    default="/optitrack/dj_tilt/poseStamped"/>
 
     <!-- topicnames of the 'nav_msgs' to be published -->
     <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
     <arg name="topic_nav_filtered" default="/state_estimator/filtered"/>
 
     <!-- Verbose all estimation states at every second -->
-    <arg name="verbose_all_estimation" default="true"/>
+    <arg name="verbose_all_estimation" default="false"/>
     <arg name="flag_visualizer_on"     default="true"/>
 
     <!-- IMU noise parameters -->
@@ -19,8 +19,8 @@
     <arg name="noise_mag"          default="0.0001"/> <!-- no reference... not used in this algorithm-->
 
     <!-- IMU bias initial values. If you dont know, set zeros.-->
-    <arg name="acc_bias"           default="[0.15,0.20,0.15]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
-    <arg name="gyro_bias"          default="[-0.024338,0.025,0.035]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
+    <arg name="acc_bias"           default="[-0.07594,-0.1427,0.3804]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
+    <arg name="gyro_bias"          default="[-0.01775,0.05271,0.02592]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
     <!-- Optitrack measurement covariance -->
@@ -28,7 +28,7 @@
     <arg name="noise_optitrack_orientation" default="0.008"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
-    <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/> 
+    <arg name="R_BI" default="[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]"/> 
     <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
     <!-- MPU9250 with CHK camera: [0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]-->
 
@@ -57,12 +57,12 @@
         <rosparam param="R_BI"  subst_value="True"> $(arg R_BI)  </rosparam>
     </node>
 
-    <group if="$(eval arg('flag_visualizer_on') ==true)">
+    <!-- <group if="$(eval arg('flag_visualizer_on') ==true)">
         <node pkg="rviz" name="state_estimator_rviz" type="rviz" args="-d $(find state_estimator)/state_estimator.rviz"/>
 
         <node pkg="rqt_multiplot" name="state_estimator_multiplot" type="rqt_multiplot" output="screen">
             <param name="multiplot-config" type="string" value="$(find state_estimator)/state_estimator_plot.xml"/>
         </node>
-    </group>
+    </group> -->
 
 </launch>

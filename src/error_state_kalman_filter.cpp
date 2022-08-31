@@ -30,8 +30,8 @@ isInitialized_(false){
     X_nom_.setBiasAcc(ba_init_);
     X_nom_.setBiasGyro(bg_init_);
 
-    double cutoff_frequency = 40.0; // Hz, default: 5.0
-    double cutoff_frequency_acc = 40.0;
+    double cutoff_frequency = 20.0; // Hz, default: 5.0
+    double cutoff_frequency_acc = 20.0;
     double sampling_rate = 100.0;
     lpf_gyro_ = new LowPassFilter<Vec3>(cutoff_frequency, sampling_rate);
     lpf_acc_  = new LowPassFilter<Vec3>(cutoff_frequency_acc, sampling_rate);
