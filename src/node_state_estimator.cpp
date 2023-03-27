@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ros/ros.h>
 
-#include "state_estimator.h"
+#include "state_estimator_ros.h"
 
 #include "signal_handler_linux.h"
 
@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
 
 	try{
 		if(ros::ok()){
-			std::unique_ptr<StateEstimator> st_est;
-			st_est = std::make_unique<StateEstimator>(nh);			
+			std::unique_ptr<StateEstimatorROS> st_est;
+			st_est = std::make_unique<StateEstimatorROS>(nh);			
 		}
 		else throw std::runtime_error("ROS not ok");
 	}

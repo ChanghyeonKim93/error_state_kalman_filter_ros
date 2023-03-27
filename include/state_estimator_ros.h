@@ -19,7 +19,7 @@
 #include <nav_msgs/Path.h>
 
 // Error state kalman filter.
-#include <error_state_kalman_filter.h>
+#include "error_state_kalman_filter.h"
 
 #include "timer.h"
 
@@ -27,7 +27,7 @@ using namespace Eigen;
 
 #define FilterType ESKF
 
-class StateEstimator{
+class StateEstimatorROS{
 // Callback functions
 private:
 	void callbackOptitrack(const geometry_msgs::PoseStampedConstPtr& msg);
@@ -39,8 +39,8 @@ private:
     void run();
 
 public:
-    StateEstimator(ros::NodeHandle& nh);
-    ~StateEstimator();
+    StateEstimatorROS(ros::NodeHandle& nh);
+    ~StateEstimatorROS();
     
 private:
     ros::NodeHandle nh_;
