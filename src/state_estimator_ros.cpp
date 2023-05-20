@@ -63,7 +63,7 @@ StateEstimatorROS::~StateEstimatorROS(){
 };
 
 void StateEstimatorROS::run(){
-    double node_rate = 5000.0;
+    int node_rate = 5000;
     ROS_INFO_STREAM("StateEstimatorROS - runs at [" << node_rate <<"] Hz.");
     ros::Rate rate(node_rate);
     
