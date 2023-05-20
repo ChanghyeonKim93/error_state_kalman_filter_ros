@@ -29,6 +29,7 @@
     <arg name="noise_optitrack_orientation" default="0.01"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
+    /
     <!-- <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/>  -->
     <!-- <arg name="R_BI" default="[-1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,1.0]"/>  -->
     <arg name="R_BI" default="[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]"/> 

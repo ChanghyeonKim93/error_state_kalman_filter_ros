@@ -12,11 +12,11 @@ StateEstimatorROS::StateEstimatorROS(ros::NodeHandle& nh)
 
     // Subscribing
     sub_imu_       = nh_.subscribe<sensor_msgs::Imu>
-        (topicname_imu_,         5, &StateEstimatorROS::callbackIMU, this);
+        (topicname_imu_,         1, &StateEstimatorROS::callbackIMU, this);
     sub_mag_       = nh_.subscribe<sensor_msgs::MagneticField>
-        (topicname_mag_,         5, &StateEstimatorROS::callbackMag, this);
+        (topicname_mag_,         1, &StateEstimatorROS::callbackMag, this);
     sub_optitrack_ = nh_.subscribe<geometry_msgs::PoseStamped>
-        (topicname_optitrack_,   5, &StateEstimatorROS::callbackOptitrack, this);
+        (topicname_optitrack_,   1, &StateEstimatorROS::callbackOptitrack, this);
 
     // Publishing 
     pub_nav_raw_      = nh_.advertise<nav_msgs::Odometry>
@@ -100,7 +100,7 @@ void StateEstimatorROS::callbackIMU(const sensor_msgs::ImuConstPtr& msg){
 
     imu_current_ = *msg;
     // double t_now = imu_current_.header.stamp.toSec();
-    double t_now = ros::Time::now().toSec();
+    double t_now = msg->header.stamp.toSec();
 
     std_msgs::Time msg_time;
     msg_time.data = ros::Time(t_now-timestamp_last_imu_);
@@ -196,7 +196,7 @@ void StateEstimatorROS::callbackOptitrack(const geometry_msgs::PoseStampedConstP
     // }
 
     optitrack_current_ = *msg;
-    double t_now = ros::Time::now().toSec();
+    double t_now = msg->header.stamp.toSec();
     
     std_msgs::Time msg_time;
     msg_time.data = ros::Time(t_now-timestamp_last_optitrack_);

@@ -1,11 +1,9 @@
 <launch>
     <!-- topic names -->
-    <!-- <arg name="topic_imu"          default="/vn100t/imu"/> -->
-    <!-- <arg name="topic_mag"          default="/vn100t/magnetic_field"/> -->
-    <arg name="topic_imu"          default="/imu/data"/>
-    <arg name="topic_mag"          default="/mag"/>
-    <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/>
-    <!-- <arg name="topic_optitrack"    default="/mavros/vision_pose/pose"/> -->
+    <arg name="topic_imu"          default="/icm42605/imu"/>
+    <arg name="topic_mag"          default="/vn100t/magnetic_field"/>
+    <!-- <arg name="topic_optitrack"    default="/optitrack/VN100T_CHK/poseStamped"/> -->
+    <arg name="topic_optitrack"    default="/optitrack/CHK_SENSOR/poseStamped"/>
 
     <!-- topicnames of the 'nav_msgs' to be published -->
     <arg name="topic_nav_raw"      default="/state_estimator/raw"/>
@@ -16,21 +14,22 @@
     <arg name="flag_visualizer_on"     default="false"/>
 
     <!-- IMU noise parameters -->
-    <arg name="noise_accel"        default="0.008"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
-    <arg name="noise_gyro"         default="0.000005"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
+    <arg name="noise_accel"        default="0.004"/> <!-- Vectornav VN100t : 0.0008, MPU9250: 0.005-->
+    <arg name="noise_gyro"         default="0.0002"/> <!-- Vectornav VN100t : 0.000005, MPU9250: 0.00005-->
     <arg name="noise_mag"          default="0.0001"/> <!-- no reference... not used in this algorithm-->
 
     <!-- IMU bias initial values. If you dont know, set zeros.-->
-    <arg name="acc_bias"           default="[0.011,0.007,0.201]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
-    <arg name="gyro_bias"          default="[0.00435,-0.0011758,-0.011671]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
+    <arg name="acc_bias"           default="[0.15,0.009,0.18]"/> <!-- Vetornav VN100t: 0.011,0.007,0.201, MPU9250: 0,0,0-->
+    <arg name="gyro_bias"          default="[ -0.00631,-0.00383 ,0.00847]"/> <!-- Vetornav VN100t: 0.00435,-0.0011758,-0.011671, MPU9250: 0,0,0-->
     <arg name="mag_bias"           default="[0.0,0.0,0.0]"/>
 
     <!-- Optitrack measurement covariance -->
     <arg name="noise_optitrack_position"    default="0.01"/>
-    <arg name="noise_optitrack_orientation" default="0.001"/>
+    <arg name="noise_optitrack_orientation" default="0.003"/>
 
     <!-- Fixed rotation from the BODY frame (drone) to IMU frame -->
-    <arg name="R_BI" default="[1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]"/> 
+    <!-- <arg name="R_BI" default="[0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]"/>  -->
+    <arg name="R_BI" default="[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]"/> 
     <!-- Vectornav VN100t with Dongjae drone: [1.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,-1.0]-->
     <!-- MPU9250 with CHK camera: [0.0,0.0,1.0,0.0,-1.0,0.0,1.0,0.0,0.0]-->
 
@@ -55,14 +54,15 @@
         <param name="noise_optitrack_position"     type="double" value="$(arg noise_optitrack_position)"/>
         <param name="noise_optitrack_orientation"  type="double" value="$(arg noise_optitrack_orientation)"/>
 
+       
         <rosparam param="R_BI"  subst_value="True"> $(arg R_BI)  </rosparam>
     </node>
 
     <group if="$(eval arg('flag_visualizer_on') ==true)">
-        <node pkg="rviz" name="state_estimator_rviz" type="rviz" args="-d $(find state_estimator)/state_estimator.rviz"/>
+        <node pkg="rviz" name="state_estimator_rviz" type="rviz" args="-d $(find error_state_kalman_filter_ros)/state_estimator.rviz"/>
 
         <node pkg="rqt_multiplot" name="state_estimator_multiplot" type="rqt_multiplot" output="screen">
-            <param name="multiplot-config" type="string" value="$(find state_estimator)/state_estimator_plot.xml"/>
+            <param name="multiplot-config" type="string" value="$(find error_state_kalman_filter_ros)/state_estimator_plot.xml"/>
         </node>
     </group>
 
